@@ -74,3 +74,13 @@ CREATE TABLE payment_methods (
                                  settings_id INTEGER REFERENCES platform_settings(id) ON DELETE CASCADE,
                                  method_name VARCHAR(100)
 );
+
+-- 1. Create the User record (Parent)
+-- We manually specify a UUID so we can reference it in the next step
+INSERT INTO users (user_id, email, password, role)
+VALUES ('00000000-0000-0000-0000-000000000000', 'admin@pasar.com', 'admin123', 'ADMIN');
+
+-- 2. Create the Administrator record (Child)
+-- This links the 'user_id' from the record above
+INSERT INTO administrators (user_id)
+VALUES ('00000000-0000-0000-0000-000000000000');
