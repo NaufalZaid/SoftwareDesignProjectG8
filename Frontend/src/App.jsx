@@ -3,15 +3,23 @@ import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
-/*import RegisterCustomer from "./pages/RegisterCustomer";
-
-function App() {
-  return <RegisterCustomer />;
-}*/
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import RegisterCustomer from "./pages/RegisterCustomer";
 import RegisterSeller from "./pages/RegisterSeller";
 
 function App() {
-  return <RegisterSeller />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/register/customer" element={<RegisterCustomer />} />
+        <Route path="/register/seller" element={<RegisterSeller />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
+
+

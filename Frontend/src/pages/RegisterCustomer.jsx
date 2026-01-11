@@ -3,6 +3,7 @@ import { registerCustomer } from "../services/authService";
 import "../styles/AuthForm.css";
 
 function RegisterCustomer() {
+    const navigate = useNavigate();
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -33,6 +34,7 @@ function RegisterCustomer() {
             const { confirmPassword, ...payload } = form;
             const message = await registerCustomer(payload);
             alert(message);
+            navigate("/");
         } catch (err) {
             alert(err.message);
         }

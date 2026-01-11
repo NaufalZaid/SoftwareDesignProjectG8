@@ -2,8 +2,9 @@ import { useState } from "react";
 import "../styles/AuthForm.css";
 
 function RegisterSeller() {
+    const navigate = useNavigate();
     const [form, setForm] = useState({
-        name: "",        // 👈 ADD
+        name: "",
         storeName: "",
         email: "",
         password: "",
@@ -35,7 +36,6 @@ function RegisterSeller() {
 
         const formData = new FormData();
 
-        // 👇 MUST MATCH DTO FIELD NAMES EXACTLY
         formData.append("name", form.name);
         formData.append("storeName", form.storeName);
         formData.append("email", form.email);
@@ -60,6 +60,7 @@ function RegisterSeller() {
 
             const message = await response.text();
             alert(message);
+            navigate("/");
         } catch (err) {
             alert(err.message);
         }
@@ -72,7 +73,7 @@ function RegisterSeller() {
 
                 <form className="auth-form" onSubmit={handleSubmit}>
 
-                    {/* 👇 NEW FIELD */}
+                    {/*NEW FIELD */}
                     <input
                         className="auth-input"
                         name="name"
