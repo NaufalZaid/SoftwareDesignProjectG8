@@ -24,9 +24,4 @@ public class Seller extends User {
     @JdbcTypeCode(SqlTypes.BINARY) // Force direct binary mapping for BYTEA
     @Column(name = "compliance_docs", columnDefinition = "BYTEA")
     private byte[] complianceDocs; // The actual file bytes are stored here
-
-    // @onetomany annotation links the Seller to all the Products they post
-    // 'mappedBy' tells JPA that the 'seller' field in the Product class owns the relationship
-    @OneToMany(mappedBy = "seller", cascade = CascadeType.ALL)
-    private List<Product> products = new ArrayList<>();
 }

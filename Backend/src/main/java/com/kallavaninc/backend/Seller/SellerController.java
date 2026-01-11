@@ -1,4 +1,4 @@
-package com.kallavaninc.backend.SellerFeatures;
+package com.kallavaninc.backend.Seller;
 
 import com.kallavaninc.backend.Entities.Order.Order;
 import com.kallavaninc.backend.Entities.Product.Product;
@@ -29,7 +29,7 @@ public class SellerController {
     public ResponseEntity<Product> addProduct(
             @PathVariable UUID sellerId,
             @RequestPart("product") Product product,
-            @RequestPart("images") List<MultipartFile> images) throws IOException {
+            @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
         return ResponseEntity.ok(productService.addProduct(sellerId, product, images));
     }

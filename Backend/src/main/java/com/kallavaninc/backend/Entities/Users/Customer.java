@@ -20,7 +20,4 @@ public class Customer extends User {
     private String name;
     private String shippingAddress;
     private String phoneNumber;
-
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    private List<Order> orders = new ArrayList<>();
 }

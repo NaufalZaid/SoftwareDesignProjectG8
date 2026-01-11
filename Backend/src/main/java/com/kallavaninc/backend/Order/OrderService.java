@@ -4,16 +4,21 @@ import com.kallavaninc.backend.Authentication.AuthenticationRepository;
 import com.kallavaninc.backend.Entities.Order.Order;
 import com.kallavaninc.backend.Entities.Product.Product;
 import com.kallavaninc.backend.Entities.Users.Customer;
+import com.kallavaninc.backend.Observer.Observer;
+import com.kallavaninc.backend.Observer.Subject;
 import com.kallavaninc.backend.Product.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class OrderService {
+public class OrderService implements Subject {
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -23,6 +28,26 @@ public class OrderService {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.authRepo = authRepo;
+    }
+
+    private final List<Observer> observers = new ArrayList<>();
+
+    // --- SUBJECT INTERFACE METHODS ---
+    @Override
+    public void attach(Observer observer) {
+        observers.add(observer);
+    }
+
+    @Override
+    public void detach(Observer observer) {
+        observers.remove(observer);
+    }
+
+    @Override
+    public void notifyObservers(Order order) {
+        for (Observer observer : observers) {
+            observer.update(order);
+        }
     }
 
     public Order getOrderById(UUID orderId) {
@@ -50,14 +75,22 @@ public class OrderService {
         order.setQuantity(quantity);
         order.setShippingAddress(address);
 
+        LocalDate deliveryDate = LocalDate.now().plusDays(7);
+        Date dateValue = java.sql.Date.valueOf(deliveryDate);
+        order.setEstimatedDelivery(dateValue);
+
         // 3. Logic: Calculate total amount
         // Inside placeOrder method
         BigDecimal unitPrice = product.getPrice();
         BigDecimal qty = new BigDecimal(quantity);
         order.setTotalAmount(unitPrice.multiply(qty));
 
-        // 4. Save to Database
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        // Notify observers to send "New Order" notifications
+        notifyObservers(savedOrder);
+
+        return savedOrder;
     }
 
     // GET orders for a specific customer
@@ -74,13 +107,27 @@ public class OrderService {
     public Order updatePaymentStatus(UUID orderId, Order.PaymentStatus status) {
         Order order = getOrderById(orderId);
         order.setPaymentStatus(status);
-        return orderRepository.save(order);
+
+        // Save to Database
+        Order updatedOrder = orderRepository.save(order);
+
+        // Notify observers to send status update notifications
+        notifyObservers(updatedOrder);
+
+        return updatedOrder;
     }
 
     // UPDATE Shipment Status
     public Order updateShipmentStatus(UUID orderId, Order.ShipmentStatus status) {
         Order order = getOrderById(orderId);
         order.setShipmentStatus(status);
-        return orderRepository.save(order);
+
+        // Save to Database
+        Order updatedOrder = orderRepository.save(order);
+
+        // Notify observers to send status update notifications
+        notifyObservers(updatedOrder);
+
+        return updatedOrder;
     }
 }

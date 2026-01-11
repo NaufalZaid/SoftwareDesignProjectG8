@@ -75,6 +75,41 @@ CREATE TABLE payment_methods (
                                  method_name VARCHAR(100)
 );
 
+-- 2. Create the Parent Table (Shared data for all notifications)
+CREATE TABLE notifications (
+                               notification_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                               message TEXT NOT NULL,
+                               estimated_delivery DATE DEFAULT CURRENT_DATE, -- Matches columnDefinition = "DATE"
+                               is_read BOOLEAN DEFAULT FALSE,
+                               type VARCHAR(50),
+                               time_sent TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                               user_id UUID NOT NULL,
+
+    -- Links to your existing users table (assuming table name is 'users')
+                               CONSTRAINT fk_notification_user
+                                   FOREIGN KEY (user_id) REFERENCES users(user_id)
+                                       ON DELETE CASCADE
+);
+
+-- 3. Create the In-App Child Table (Required for JOINED inheritance)
+CREATE TABLE in_app_notifications (
+                                      notification_id UUID PRIMARY KEY,
+
+                                      CONSTRAINT fk_in_app_parent
+                                          FOREIGN KEY (notification_id) REFERENCES notifications(notification_id)
+                                              ON DELETE CASCADE
+);
+
+-- 4. Create the Email Child Table (Stores email-specific data)
+CREATE TABLE email_notifications (
+                                     notification_id UUID PRIMARY KEY,
+                                     recipient_email VARCHAR(255) NOT NULL,
+
+                                     CONSTRAINT fk_email_parent
+                                         FOREIGN KEY (notification_id) REFERENCES notifications(notification_id)
+                                             ON DELETE CASCADE
+);
+
 -- 1. Create the User record (Parent)
 -- We manually specify a UUID so we can reference it in the next step
 INSERT INTO users (user_id, email, password, role)
