@@ -2,20 +2,25 @@ package com.kallavaninc.backend.Order;
 
 import com.kallavaninc.backend.Authentication.AuthenticationRepository;
 import com.kallavaninc.backend.Entities.Order.Order;
+import com.kallavaninc.backend.Entities.Payment.Transaction;
 import com.kallavaninc.backend.Entities.Product.Product;
 import com.kallavaninc.backend.Entities.Users.Customer;
+import com.kallavaninc.backend.Entities.Users.Seller;
 import com.kallavaninc.backend.Observer.Observer;
 import com.kallavaninc.backend.Observer.Subject;
+import com.kallavaninc.backend.Entities.Payment.Wallet;
+import com.kallavaninc.backend.Payment.TransactionRepository;
+import com.kallavaninc.backend.Payment.WalletRepository;
 import com.kallavaninc.backend.Product.ProductRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
+
+
 
 @Service
 public class OrderService implements Subject {
@@ -23,11 +28,15 @@ public class OrderService implements Subject {
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final AuthenticationRepository authRepo;
+    private final WalletRepository walletRepository;
+    private final TransactionRepository transactionRepository;
 
-    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, AuthenticationRepository authRepo) {
+    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, AuthenticationRepository authRepo, WalletRepository walletRepo, TransactionRepository transactionRepository) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.authRepo = authRepo;
+        this.walletRepository = walletRepo;
+        this.transactionRepository = transactionRepository;
     }
 
     private final List<Observer> observers = new ArrayList<>();
@@ -44,9 +53,9 @@ public class OrderService implements Subject {
     }
 
     @Override
-    public void notifyObservers(Order order) {
+    public void notifyObservers(Order order, String eventType) {
         for (Observer observer : observers) {
-            observer.update(order);
+            observer.update(order, eventType );
         }
     }
 
@@ -88,7 +97,7 @@ public class OrderService implements Subject {
         Order savedOrder = orderRepository.save(order);
 
         // Notify observers to send "New Order" notifications
-        notifyObservers(savedOrder);
+        notifyObservers(savedOrder, "ORDER_CREATED");
 
         return savedOrder;
     }
@@ -103,6 +112,31 @@ public class OrderService implements Subject {
         return orderRepository.findByProductSellerUserID(sellerId);
     }
 
+    @Transactional
+    public void processPayment(Order order) {
+        Customer customer = order.getCustomer();
+        Seller seller = order.getProduct().getSeller();
+        BigDecimal amount = order.getTotalAmount();
+
+        Wallet customerWallet = walletRepository.findByUser(customer);
+        Wallet sellerWallet = walletRepository.findByUser(seller);
+
+        // Check if customer has enough money
+        if (customerWallet.getBalance().compareTo(amount) < 0) {
+            updatePaymentStatus(order.getOrderID(), Order.PaymentStatus.FAILED);
+            return;
+        }
+
+        // Perform the transfer
+        customerWallet.setBalance(customerWallet.getBalance().subtract(amount));
+        sellerWallet.setBalance(sellerWallet.getBalance().add(amount));
+
+        walletRepository.save(customerWallet);
+        walletRepository.save(sellerWallet);
+
+        updatePaymentStatus(order.getOrderID(), Order.PaymentStatus.PAID);
+    }
+
     // UPDATE Payment Status
     public Order updatePaymentStatus(UUID orderId, Order.PaymentStatus status) {
         Order order = getOrderById(orderId);
@@ -111,8 +145,11 @@ public class OrderService implements Subject {
         // Save to Database
         Order updatedOrder = orderRepository.save(order);
 
+        logTransaction(updatedOrder, updatedOrder.getPaymentStatus());
+
         // Notify observers to send status update notifications
-        notifyObservers(updatedOrder);
+        notifyObservers(updatedOrder, "PAYMENT_UPDATE");
+
 
         return updatedOrder;
     }
@@ -126,8 +163,25 @@ public class OrderService implements Subject {
         Order updatedOrder = orderRepository.save(order);
 
         // Notify observers to send status update notifications
-        notifyObservers(updatedOrder);
+        notifyObservers(updatedOrder, "SHIPMENT_UPDATE");
 
         return updatedOrder;
     }
+
+    private void logTransaction(Order order, Order.PaymentStatus status) {
+        Transaction transactionLog = new Transaction();
+        transactionLog.setSender(order.getCustomer());
+        transactionLog.setReceiver(order.getProduct().getSeller());
+        transactionLog.setAmount(order.getTotalAmount());
+        transactionLog.setDescription("Payment for Order #" + order.getOrderID());
+        if (status == Order.PaymentStatus.PAID) {
+            transactionLog.setStatus("PAID");
+        }
+        else if(status == Order.PaymentStatus.UNPAID){
+            transactionLog.setStatus("UNPAID");
+        }
+        else{
+            transactionLog.setStatus("FAILED");}
+        transactionLog.setTimestamp(LocalDateTime.now());
+        transactionRepository.save(transactionLog);}
 }
