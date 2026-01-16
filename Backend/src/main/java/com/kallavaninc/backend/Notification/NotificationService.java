@@ -39,35 +39,44 @@ public class NotificationService implements Observer, CommandLineRunner {
     }
 
     @Override
-    public void update(Order order) {
+    public void update(Order order, String eventType) {
         List<Notification> toSave = new ArrayList<>();
-
-        // Navigate the relationship to find the Seller
         User seller = order.getProduct().getSeller();
         User customer = order.getCustomer();
 
-        // 1. MESSAGES FOR CUSTOMER (Shipment Status)
-        String customerMsg;
-        if (order.getShipmentStatus() == Order.ShipmentStatus.PROCESSING) {
-            customerMsg = "New Order: #" + order.getOrderID();
-        } else {
-            customerMsg = "Order #" + order.getOrderID() + " is now " + order.getShipmentStatus();
+        // Initial Order Creation Event
+        if ("ORDER_CREATED".equals(eventType)) {
+            String customerMsg = "Order #" + order.getOrderID() + " placed successfully!";
+            String sellerMsg = "New order received for: " + order.getProduct().getName();
+
+            // Notify both parties of the new transaction
+            toSave.add(inAppFactory.createNotification(order, customer, customerMsg));
+            toSave.add(emailFactory.createNotification(order, customer, customerMsg));
+            toSave.add(inAppFactory.createNotification(order, seller, sellerMsg));
+            toSave.add(emailFactory.createNotification(order, seller, sellerMsg));
         }
 
-        // --- 2. SELLER NOTIFICATION LOGIC (Payment status) ---
-        String sellerMsg;
-        if (order.getPaymentStatus() == Order.PaymentStatus.UNPAID) {
-            sellerMsg = "New order placed for " + order.getProduct().getName();
-        } else {
-            sellerMsg = "Payment update for " + order.getOrderID() + ": " + order.getPaymentStatus();
+        // Shipment Status Changes
+        else if ("SHIPMENT_UPDATE".equals(eventType)) {
+            String msg = "Order #" + order.getOrderID() + " status: " + order.getShipmentStatus();
+
+            // Typically only the customer needs shipment updates
+            toSave.add(inAppFactory.createNotification(order, customer, msg));
+            toSave.add(emailFactory.createNotification(order, customer, msg));
         }
 
-        //
-        toSave.add(inAppFactory.createNotification(order, customer, customerMsg));
-        toSave.add(emailFactory.createNotification(order, customer, customerMsg));
-        toSave.add(inAppFactory.createNotification(order, seller, sellerMsg));
-        toSave.add(emailFactory.createNotification(order, seller, sellerMsg));
+        // Payment Status Changes
+        else if ("PAYMENT_UPDATE".equals(eventType)) {
+            String msg = "Payment for Order #" + order.getOrderID() + " is now " + order.getPaymentStatus();
 
-        notificationRepository.saveAll(toSave);
+            // Notify the seller so they know when to ship
+            toSave.add(inAppFactory.createNotification(order, seller, msg));
+            toSave.add(emailFactory.createNotification(order, seller, msg));
+        }
+
+        // Save only if events matched
+        if (!toSave.isEmpty()) {
+            notificationRepository.saveAll(toSave);
+        }
     }
 }

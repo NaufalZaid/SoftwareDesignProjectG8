@@ -110,6 +110,32 @@ CREATE TABLE email_notifications (
                                              ON DELETE CASCADE
 );
 
+CREATE TABLE wallets (
+                         wallet_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                         balance DECIMAL(10, 2) DEFAULT 100.00,
+                         user_id UUID UNIQUE NOT NULL REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE transactions (
+                              transaction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                              sender_id UUID,
+                              receiver_id UUID,
+                              amount DECIMAL(10, 2) NOT NULL,
+                              timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              description TEXT,
+                              status VARCHAR(50),
+
+                              CONSTRAINT fk_transaction_sender
+                                  FOREIGN KEY (sender_id) REFERENCES users(user_id)
+                                      ON DELETE SET NULL,
+
+                              CONSTRAINT fk_transaction_receiver
+                                  FOREIGN KEY (receiver_id) REFERENCES users(user_id)
+                                      ON DELETE SET NULL
+);
+CREATE INDEX idx_transactions_sender ON transactions(sender_id);
+CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
+
 -- 1. Create the User record (Parent)
 -- We manually specify a UUID so we can reference it in the next step
 INSERT INTO users (user_id, email, password, role)

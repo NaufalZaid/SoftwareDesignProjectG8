@@ -44,7 +44,7 @@ public class Order {
 
     private String shippingAddress;
 
-    public enum PaymentStatus { PAID, UNPAID, REFUNDED }
+    public enum PaymentStatus { PAID, UNPAID, FAILED }
     public enum ShipmentStatus { PROCESSING, SHIPPED, DELIVERED }
 
     @ManyToOne(fetch = FetchType.LAZY)

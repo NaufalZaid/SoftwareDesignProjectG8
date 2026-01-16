@@ -5,17 +5,22 @@ import com.kallavaninc.backend.DTO.RegistrationDTOs.SellerRegisterRequest;
 import com.kallavaninc.backend.Entities.Users.Customer;
 import com.kallavaninc.backend.Entities.Users.Seller;
 import com.kallavaninc.backend.Entities.Users.User;
+import com.kallavaninc.backend.Entities.Payment.Wallet;
+import com.kallavaninc.backend.Payment.WalletRepository;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @Service
 public class AuthenticationService {
     private final AuthenticationRepository authenticationRepository;
+    private final WalletRepository walletRepository;
 
-    public AuthenticationService(AuthenticationRepository authenticationRepository) {
+    public AuthenticationService(AuthenticationRepository authenticationRepository, WalletRepository walletRepository) {
         this.authenticationRepository = authenticationRepository;
+        this.walletRepository = walletRepository;
     }
 
     public User login(String email, String password) {
@@ -46,6 +51,11 @@ public class AuthenticationService {
         customer.setRole("CUSTOMER");
 
         authenticationRepository.save(customer);
+
+        Wallet wallet = new Wallet();
+        wallet.setBalance(BigDecimal.valueOf(100.00));
+        wallet.setUser(customer);
+        walletRepository.save(wallet);
     }
 
     public void registerSeller(SellerRegisterRequest req) {
@@ -69,5 +79,10 @@ public class AuthenticationService {
         }
 
         authenticationRepository.save(seller);
+
+        Wallet wallet = new Wallet();
+        wallet.setBalance(BigDecimal.valueOf(100.00));
+        wallet.setUser(seller);
+        walletRepository.save(wallet);
     }
 }
