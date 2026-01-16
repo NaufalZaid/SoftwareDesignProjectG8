@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { registerCustomer } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 import "../styles/AuthForm.css";
 
 function RegisterCustomer() {
     const navigate = useNavigate();
+
     const [form, setForm] = useState({
         name: "",
         email: "",
@@ -20,6 +21,7 @@ function RegisterCustomer() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Frontend validation
         if (form.password.length < 8) {
             alert("Password must be at least 8 characters long");
             return;
@@ -30,11 +32,28 @@ function RegisterCustomer() {
             return;
         }
 
+        // Remove confirmPassword before sending
+        const { confirmPassword, ...payload } = form;
+
         try {
-            const { confirmPassword, ...payload } = form;
-            const message = await registerCustomer(payload);
-            alert(message);
+            const response = await fetch(
+                "/api/v1/auth/register/customer",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(await response.text());
+            }
+
+            alert("Customer registered successfully");
             navigate("/");
+
         } catch (err) {
             alert(err.message);
         }
