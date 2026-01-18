@@ -26,7 +26,7 @@ function Home() {
                     </button>
                     <button
                         className="auth-button"
-                        onClick={() => navigate("/customer")}
+                        onClick={() => navigate("/login")}
                         style={{ marginTop: "1rem" }}
                     >
                         customer dashboard

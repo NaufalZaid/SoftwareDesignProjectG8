@@ -8,6 +8,7 @@ import RegisterSeller from "./pages/RegisterSeller";
 import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
 import CustomerDashboard from './pages/CustomerDashboard';
+import Login from './pages/TempLogin';
 import Cart from './pages/Cart';
 
 
@@ -23,6 +24,7 @@ function App() {
         <Route path="/customer/cart" element={<Cart />} />
         <Route path="/customer/orders" element={<MyOrders />} />
         <Route path="/customer/orderDetails" element={<OrderDetails />} />
+        <Route path="/login" element={<Login />} />
 
 
       </Routes>

@@ -5,7 +5,12 @@ import {
     removeFromCart,
     clearCart
 } from "../services/cart";
-import { getCustomerProfile, placeOrder } from "../services/api";
+import {
+    getCustomerProfile,
+    placeOrder,
+    getWalletBalance,
+    payForOrder
+} from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
@@ -14,6 +19,7 @@ export default function Cart() {
 
     const [cart, setCart] = useState([]);
     const [shippingAddress, setShippingAddress] = useState("");
+    const [walletBalance, setWalletBalance] = useState(0);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -25,20 +31,23 @@ export default function Cart() {
 
         setCart(getCart());
 
-        getCustomerProfile(userId)
-            .then(profile => {
+        Promise.all([
+            getCustomerProfile(userId),
+            getWalletBalance(userId)
+        ])
+            .then(([profile, balance]) => {
                 if (!profile.shippingAddress) {
                     throw new Error("No address");
                 }
                 setShippingAddress(profile.shippingAddress);
+                setWalletBalance(balance);
             })
             .catch(err => {
                 console.error(err);
-                alert("Failed to load shipping address");
+                alert("Failed to load customer data");
             })
             .finally(() => setLoading(false));
     }, [userId, navigate]);
-
 
     function refresh() {
         setCart(getCart());
@@ -51,25 +60,34 @@ export default function Cart() {
         }
 
         if (!shippingAddress) {
-            alert("No shipping address found for this customer");
+            alert("No shipping address found");
             return;
         }
 
         try {
             for (const item of cart) {
-                await placeOrder(
+                // 1️⃣ Place order
+                const order = await placeOrder(
                     userId,
                     item.productId,
                     item.quantity,
                     shippingAddress
                 );
+
+                // 2️⃣ Pay for order (THIS deducts wallet balance)
+                await payForOrder(order.orderID);
             }
 
+            // 3️⃣ Refresh wallet balance
+            const updatedBalance = await getWalletBalance(userId);
+            setWalletBalance(updatedBalance);
+
             clearCart();
-            alert("Order placed successfully");
+            alert("Order placed and paid successfully");
             navigate("/customer");
         } catch (err) {
-            alert("Checkout failed");
+            console.error(err);
+            alert("Checkout failed: " + err.message);
         }
     }
 
@@ -93,6 +111,7 @@ export default function Cart() {
                     }}
                 >
                     <p><strong>{item.name}</strong></p>
+                    <p>Price: RM {item.price}</p>
 
                     <input
                         type="number"
@@ -121,9 +140,13 @@ export default function Cart() {
                 <p>{shippingAddress}</p>
             </div>
 
+            <div style={{ marginTop: 10 }}>
+                <p><strong>Wallet Balance:</strong> RM {walletBalance}</p>
+            </div>
+
             <div style={{ marginTop: 20 }}>
                 <button onClick={handleCheckout}>
-                    Place Order
+                    Place Order & Pay
                 </button>
 
                 <button

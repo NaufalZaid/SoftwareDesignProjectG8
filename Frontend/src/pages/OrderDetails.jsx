@@ -15,7 +15,8 @@ export default function OrderDetails() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function loadData() {
+        async function loadData() {//test
+
             try {
                 const orderData = await getOrderDetails(orderId);
                 setOrder(orderData);
