@@ -24,6 +24,13 @@ function Home() {
                     >
                         Register as Seller
                     </button>
+                    <button
+                        className="auth-button"
+                        onClick={() => navigate("/login")}
+                        style={{ marginTop: "1rem" }}
+                    >
+                        customer dashboard
+                    </button>
                 </div>
             </div>
         </div>

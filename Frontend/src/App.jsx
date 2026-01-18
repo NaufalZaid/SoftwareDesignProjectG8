@@ -1,12 +1,17 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+
 import './App.css'
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import RegisterCustomer from "./pages/RegisterCustomer";
 import RegisterSeller from "./pages/RegisterSeller";
+import MyOrders from "./pages/MyOrders";
+import OrderDetails from "./pages/OrderDetails";
+import CustomerDashboard from './pages/CustomerDashboard';
+import Login from './pages/TempLogin';
+import Cart from './pages/Cart';
+
+
 
 function App() {
   return (
@@ -15,6 +20,13 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/register/customer" element={<RegisterCustomer />} />
         <Route path="/register/seller" element={<RegisterSeller />} />
+        <Route path="/customer" element={<CustomerDashboard />} />
+        <Route path="/customer/cart" element={<Cart />} />
+        <Route path="/customer/orders" element={<MyOrders />} />
+        <Route path="/customer/orderDetails" element={<OrderDetails />} />
+        <Route path="/login" element={<Login />} />
+
+
       </Routes>
     </BrowserRouter>
   );
