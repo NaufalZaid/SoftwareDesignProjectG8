@@ -10,6 +10,10 @@ import MyOrders from "./pages/MyOrders";
 import OrderDetails from "./pages/OrderDetails";
 import CustomerDashboard from './pages/CustomerDashboard';
 import Cart from './pages/Cart';
+import SellerProducts from "./pages/SellerProducts";
+import SellerOrders from "./pages/SellerOrders";
+import SellerDashboard from "./pages/SellerDashboard";
+
 
 
 
@@ -25,6 +29,10 @@ function App() {
         <Route path="/customer/checkout" element={<Checkout />} />
         <Route path="/customer/orders" element={<MyOrders />} />
         <Route path="/customer/orderDetails" element={<OrderDetails />} />
+        <Route path="/seller/products" element={<SellerProducts />} />
+        <Route path="/seller/orders" element={<SellerOrders />} />
+        <Route path="/seller/dashboard" element={<SellerDashboard />} />
+
 
 
       </Routes>
