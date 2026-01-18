@@ -53,8 +53,9 @@ export async function payForOrder(orderId) {
     }
     return res.text();
 }
-export async function getShippingAddress(customerId) {
-    const res = await fetch(`/api/v1/customer/${customerId}/address`);
-    if (!res.ok) throw new Error("Failed to fetch address");
-    return res.text();
+export async function getCustomerProfile(userId) {
+    const res = await fetch(`/api/v1/customer/${userId}/profile`);
+    if (!res.ok) throw new Error("Failed to fetch profile");
+    return res.json();
 }
+

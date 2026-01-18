@@ -1,21 +1,30 @@
 import { useState, useEffect } from "react";
-import { getCart, updateQuantity, removeFromCart, clearCart } from "../services/cart";
-import { getCustomer, placeOrder } from "../services/api";
+import {
+    getCart,
+    updateQuantity,
+    removeFromCart,
+    clearCart
+} from "../services/cart";
+import {
+    placeOrder,
+    getCustomerProfile
+} from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
     const [cart, setCart] = useState([]);
-    const [customer, setCustomer] = useState(null);
+    const [profile, setProfile] = useState(null);
+
     const navigate = useNavigate();
     const customerId = localStorage.getItem("userId");
 
-    // Load cart + customer once
+    // Load cart + customer profile once
     useEffect(() => {
         setCart(getCart());
 
-        getCustomer(customerId)
-            .then(setCustomer)
-            .catch(() => alert("Failed to load customer details"));
+        getCustomerProfile(customerId)
+            .then(setProfile)
+            .catch(() => alert("Failed to load customer profile"));
     }, []);
 
     function refresh() {
@@ -28,19 +37,19 @@ export default function Cart() {
             return;
         }
 
-        if (!customer?.shippingAddress) {
+        if (!profile?.shippingAddress) {
             alert("No shipping address found for this customer");
             return;
         }
 
         try {
-            // One order per cart item (matches backend design)
+            // Backend model: one order per product
             for (const item of cart) {
                 await placeOrder(
                     customerId,
                     item.productId,
                     item.quantity,
-                    customer.shippingAddress
+                    profile.shippingAddress
                 );
             }
 
@@ -61,7 +70,11 @@ export default function Cart() {
             {cart.map(item => (
                 <div
                     key={item.productId}
-                    style={{ border: "1px solid #ccc", padding: 10, marginBottom: 10 }}
+                    style={{
+                        border: "1px solid #ccc",
+                        padding: 10,
+                        marginBottom: 10
+                    }}
                 >
                     <p><strong>{item.name}</strong></p>
 
@@ -87,11 +100,11 @@ export default function Cart() {
                 </div>
             ))}
 
-            {/* Shipping Address (Read-only) */}
-            {customer?.shippingAddress && (
+            {/* Shipping Address from DB */}
+            {profile && (
                 <div style={{ marginTop: 20 }}>
                     <h4>Shipping Address</h4>
-                    <p>{customer.shippingAddress}</p>
+                    <p>{profile.shippingAddress}</p>
                 </div>
             )}
 
