@@ -1,5 +1,6 @@
 package com.kallavaninc.backend.Customer;
 
+import com.kallavaninc.backend.DTO.CustomerDTO.CustomerProfileDTO;
 import com.kallavaninc.backend.Entities.Order.Order;
 import com.kallavaninc.backend.Entities.Payment.Wallet;
 import com.kallavaninc.backend.Order.OrderService;
@@ -88,5 +89,10 @@ public class CustomerController {
 
         customerService.topUpWallet(userId, amount);
         return ResponseEntity.ok("Top-up successful! New balance updated.");
+    }
+
+    @GetMapping("/{userId}/profile")
+    public ResponseEntity<CustomerProfileDTO> getProfile(@PathVariable UUID userId) {
+        return ResponseEntity.ok(customerService.getCustomerProfile(userId));
     }
 }
