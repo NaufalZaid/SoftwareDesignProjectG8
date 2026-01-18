@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
-import { getAllProducts, getMyOrders } from "../services/api";
 import { addToCart, getCart } from "../services/cart";
 import { useNavigate } from "react-router-dom";
+import {
+    getAllProducts,
+    getMyOrders,
+    getWalletBalance,
+    topUpWallet,
+    payForOrder
+} from "../services/api";
+
+
 
 export default function CustomerDashboard() {
     //get userid from localstorage
@@ -20,6 +28,8 @@ export default function CustomerDashboard() {
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [cartCount, setCartCount] = useState(0);
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [topUpAmount, setTopUpAmount] = useState("");
 
     // Load products, orders, cart ONCE
     useEffect(() => {
@@ -30,6 +40,8 @@ export default function CustomerDashboard() {
 
         getMyOrders(customerId).then(setOrders);
         setCartCount(getCart().length);
+        getWalletBalance(customerId).then(setWalletBalance);
+
     }, []);
 
     // Client-side search
@@ -56,9 +68,6 @@ export default function CustomerDashboard() {
                 <button onClick={() => navigate("/customer/cart")}>
                     Cart ({cartCount})
                 </button>
-                <button onClick={() => navigate("/customer/checkout")} style={{ marginLeft: 10 }}>
-                    Checkout
-                </button>
                 <button onClick={() => navigate("/")} style={{ marginLeft: 10 }}>
                     Logout
                 </button>
@@ -71,6 +80,13 @@ export default function CustomerDashboard() {
                     disabled={selectedTab === "products"}
                 >
                     Show Products
+                </button>
+                <button
+                    onClick={() => setSelectedTab("wallet")}
+                    disabled={selectedTab === "wallet"}
+                    style={{ marginLeft: 10 }}
+                >
+                    Wallet
                 </button>
 
                 <button
@@ -135,11 +151,65 @@ export default function CustomerDashboard() {
                             <p><strong>{o.product.name}</strong></p>
                             <p>Quantity: {o.quantity}</p>
                             <p>Payment: {o.paymentStatus}</p>
+
+                            {o.paymentStatus === "UNPAID" && (
+                                <button
+                                    onClick={async (e) => {
+                                        e.stopPropagation(); // prevent navigation
+                                        try {
+                                            await payForOrder(o.orderID);
+                                            alert("Payment successful");
+
+                                            // refresh orders + wallet
+                                            getMyOrders(customerId).then(setOrders);
+                                            getWalletBalance(customerId).then(setWalletBalance);
+                                        } catch (err) {
+                                            alert(err.message);
+                                        }
+                                    }}
+                                >
+                                    Pay Now
+                                </button>
+                            )}
+
                             <p>Shipment: {o.shipmentStatus}</p>
                         </div>
                     ))}
                 </section>
             )}
+
+            {selectedTab === "wallet" && (
+                <section style={{ marginTop: 20 }}>
+                    <h2>My Wallet</h2>
+
+                    <p><strong>Balance:</strong> RM {walletBalance}</p>
+
+                    <input
+                        type="number"
+                        placeholder="Top-up amount"
+                        value={topUpAmount}
+                        onChange={e => setTopUpAmount(e.target.value)}
+                    />
+
+                    <button
+                        onClick={async () => {
+                            try {
+                                await topUpWallet(customerId, topUpAmount);
+                                const updated = await getWalletBalance(customerId);
+                                setWalletBalance(updated);
+                                setTopUpAmount("");
+                                alert("Top-up successful");
+                            } catch (e) {
+                                alert(e.message);
+                            }
+                        }}
+                        style={{ marginLeft: 10 }}
+                    >
+                        Top Up
+                    </button>
+                </section>
+            )}
+
         </div>
     );
 }

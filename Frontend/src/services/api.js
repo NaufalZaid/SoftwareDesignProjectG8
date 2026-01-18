@@ -27,3 +27,34 @@ export async function getOrderDetails(orderId) {
     if (!res.ok) throw new Error("Failed to fetch order");
     return res.json();
 }
+export async function getWalletBalance(userId) {
+    const res = await fetch(`/api/v1/customer/user/${userId}/balance`);
+    if (!res.ok) throw new Error("Failed to fetch balance");
+    return res.json();
+}
+
+export async function topUpWallet(userId, amount) {
+    const res = await fetch(
+        `/api/v1/customer/wallet/${userId}/topup?amount=${amount}`,
+        { method: "POST" }
+    );
+    if (!res.ok) throw new Error("Top-up failed");
+    return res.text();
+}
+
+export async function payForOrder(orderId) {
+    const res = await fetch(
+        `/api/v1/customer/order/${orderId}/pay`,
+        { method: "POST" }
+    );
+    if (!res.ok) {
+        const msg = await res.text();
+        throw new Error(msg);
+    }
+    return res.text();
+}
+export async function getShippingAddress(customerId) {
+    const res = await fetch(`/api/v1/customer/${customerId}/address`);
+    if (!res.ok) throw new Error("Failed to fetch address");
+    return res.text();
+}
