@@ -35,18 +35,21 @@ function Login() {
 
             const role = user.user_role?.trim().toUpperCase();
 
-            // ✅ Store session data
+            //  Store session data
             localStorage.setItem("userId", user.userID);
             localStorage.setItem("role", role);
 
             alert("Login successful");
 
-            // ✅ Role-based redirect
+            //  Role-based redirect
             if (role === "CUSTOMER") {
                 navigate("/customer");
             }
             else if (role === "SELLER") {
-                navigate("/seller/dashboard");
+                navigate("/");
+            }
+            else if (role === "ADMIN") {
+                navigate("/");
             }
             else {
                 navigate("/");
