@@ -10,8 +10,8 @@ import {
 } from "../services/api";
 
 export default function CustomerDashboard() {
-    // get userId from localStorage
-    const customerId = localStorage.getItem("userId");
+    // ALWAYS treat this as userId
+    const userId = localStorage.getItem("userId");
     const navigate = useNavigate();
 
     const [selectedTab, setSelectedTab] = useState("products");
@@ -25,17 +25,27 @@ export default function CustomerDashboard() {
     const [walletBalance, setWalletBalance] = useState(0);
     const [topUpAmount, setTopUpAmount] = useState("");
 
-    // Load products, orders, cart, wallet ONCE
+    // ✅ USER GUARD (MUST BE FIRST)
     useEffect(() => {
+        if (!userId) {
+            alert("User not logged in");
+            navigate("/");
+        }
+    }, [userId, navigate]);
+
+    // ✅ LOAD DATA
+    useEffect(() => {
+        if (!userId) return;
+
         getAllProducts().then(data => {
             setAllProducts(data);
             setProducts(data);
         });
 
-        getMyOrders(customerId).then(setOrders);
-        getWalletBalance(customerId).then(setWalletBalance);
+        getMyOrders(userId).then(setOrders);
+        getWalletBalance(userId).then(setWalletBalance);
         setCartCount(getCart().length);
-    }, [customerId]);
+    }, [userId]);
 
     // Client-side search
     useEffect(() => {
@@ -59,9 +69,11 @@ export default function CustomerDashboard() {
         }
 
         try {
-            await topUpWallet(customerId, topUpAmount);
-            const updatedBalance = await getWalletBalance(customerId);
+            await topUpWallet(userId, Number(topUpAmount));
+
+            const updatedBalance = await getWalletBalance(userId);
             setWalletBalance(updatedBalance);
+
             setTopUpAmount("");
             alert("Top-up successful");
         } catch (e) {
@@ -171,9 +183,8 @@ export default function CustomerDashboard() {
                                             await payForOrder(o.orderID);
                                             alert("Payment successful");
 
-                                            // refresh orders + wallet
-                                            getMyOrders(customerId).then(setOrders);
-                                            getWalletBalance(customerId).then(setWalletBalance);
+                                            getMyOrders(userId).then(setOrders);
+                                            getWalletBalance(userId).then(setWalletBalance);
                                         } catch (err) {
                                             alert(err.message);
                                         }
@@ -203,10 +214,7 @@ export default function CustomerDashboard() {
                         onChange={e => setTopUpAmount(e.target.value)}
                     />
 
-                    <button
-                        onClick={handleTopUp}
-                        style={{ marginLeft: 10 }}
-                    >
+                    <button onClick={handleTopUp} style={{ marginLeft: 10 }}>
                         Top Up
                     </button>
                 </section>

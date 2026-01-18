@@ -5,27 +5,40 @@ import {
     removeFromCart,
     clearCart
 } from "../services/cart";
-import {
-    placeOrder,
-    getCustomerProfile
-} from "../services/api";
+import { getCustomerProfile, placeOrder } from "../services/api";
 import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
-    const [cart, setCart] = useState([]);
-    const [profile, setProfile] = useState(null);
-
     const navigate = useNavigate();
-    const customerId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userId");
 
-    // Load cart + customer profile once
+    const [cart, setCart] = useState([]);
+    const [shippingAddress, setShippingAddress] = useState("");
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
+        if (!userId) {
+            alert("User not logged in");
+            navigate("/");
+            return;
+        }
+
         setCart(getCart());
 
-        getCustomerProfile(customerId)
-            .then(setProfile)
-            .catch(() => alert("Failed to load customer profile"));
-    }, []);
+        getCustomerProfile(userId)
+            .then(profile => {
+                if (!profile.shippingAddress) {
+                    throw new Error("No address");
+                }
+                setShippingAddress(profile.shippingAddress);
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed to load shipping address");
+            })
+            .finally(() => setLoading(false));
+    }, [userId, navigate]);
+
 
     function refresh() {
         setCart(getCart());
@@ -37,28 +50,31 @@ export default function Cart() {
             return;
         }
 
-        if (!profile?.shippingAddress) {
+        if (!shippingAddress) {
             alert("No shipping address found for this customer");
             return;
         }
 
         try {
-            // Backend model: one order per product
             for (const item of cart) {
                 await placeOrder(
-                    customerId,
+                    userId,
                     item.productId,
                     item.quantity,
-                    profile.shippingAddress
+                    shippingAddress
                 );
             }
 
             clearCart();
             alert("Order placed successfully");
             navigate("/customer");
-        } catch (error) {
+        } catch (err) {
             alert("Checkout failed");
         }
+    }
+
+    if (loading) {
+        return <p>Loading cart...</p>;
     }
 
     return (
@@ -100,15 +116,11 @@ export default function Cart() {
                 </div>
             ))}
 
-            {/* Shipping Address from DB */}
-            {profile && (
-                <div style={{ marginTop: 20 }}>
-                    <h4>Shipping Address</h4>
-                    <p>{profile.shippingAddress}</p>
-                </div>
-            )}
+            <div style={{ marginTop: 20 }}>
+                <h4>Shipping Address</h4>
+                <p>{shippingAddress}</p>
+            </div>
 
-            {/* Actions */}
             <div style={{ marginTop: 20 }}>
                 <button onClick={handleCheckout}>
                     Place Order

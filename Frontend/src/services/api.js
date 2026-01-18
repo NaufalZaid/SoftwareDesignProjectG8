@@ -58,4 +58,8 @@ export async function getCustomerProfile(userId) {
     if (!res.ok) throw new Error("Failed to fetch profile");
     return res.json();
 }
+export async function getShippingAddress(userId) {
+    const profile = await getCustomerProfile(userId);
+    return profile.shippingAddress();
+}
 
