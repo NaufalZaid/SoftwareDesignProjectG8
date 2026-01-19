@@ -1,12 +1,13 @@
 package com.kallavaninc.backend.Entities.Product;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name = "product_images")
+@Table(name = "products_images")
 @Getter @Setter
 public class ProductImage {
 
@@ -14,25 +15,19 @@ public class ProductImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // Internal ID for the image table
 
-    private String fileName;
+    private String fileName; // Stores: "uuid_myphoto.jpg"
 
-    @Lob
-    @JdbcTypeCode(SqlTypes.BINARY)
-    @Column(name = "image_data", columnDefinition = "BYTEA")
-    private byte[] imageData;
-
-    // Link to the Product using UUID
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnore // Important: Prevents infinite loops in JSON
     private Product product;
 
     public ProductImage() {
     }
 
-    public ProductImage(Long id, String fileName, byte[] imageData, Product product) {
+    public ProductImage(Long id, String fileName, Product product) {
         this.id = id;
         this.fileName = fileName;
-        this.imageData = imageData;
         this.product = product;
     }
 }

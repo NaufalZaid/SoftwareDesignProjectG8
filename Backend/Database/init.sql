@@ -41,10 +41,9 @@ CREATE TABLE products (
                           user_id UUID NOT NULL REFERENCES sellers(user_id) -- Foreign key to Seller subclass
 );
 
-CREATE TABLE product_images (
+CREATE TABLE products_images (
                                 id BIGSERIAL PRIMARY KEY,
                                 file_name VARCHAR(255),
-                                image_data BYTEA, -- Binary data for images
                                 product_id UUID NOT NULL REFERENCES products(product_id) ON DELETE CASCADE
 );
 
