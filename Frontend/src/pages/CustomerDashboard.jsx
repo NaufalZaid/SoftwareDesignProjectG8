@@ -25,7 +25,7 @@ export default function CustomerDashboard() {
     const [walletBalance, setWalletBalance] = useState(0);
     const [topUpAmount, setTopUpAmount] = useState("");
 
-    // ✅ USER GUARD (MUST BE FIRST)
+    //  USER GUARD (MUST BE FIRST)
     useEffect(() => {
         if (!userId) {
             alert("User not logged in");
@@ -33,7 +33,7 @@ export default function CustomerDashboard() {
         }
     }, [userId, navigate]);
 
-    // ✅ LOAD DATA
+    //  LOAD DATA
     useEffect(() => {
         if (!userId) return;
 
