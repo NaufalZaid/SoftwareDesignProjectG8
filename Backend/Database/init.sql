@@ -117,7 +117,7 @@ CREATE TABLE wallets (
 );
 
 CREATE TABLE transactions (
-                              transaction_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                              transaction_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                               sender_id UUID,
                               receiver_id UUID,
                               amount DECIMAL(10, 2) NOT NULL,
@@ -139,7 +139,7 @@ CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
 -- 1. Create the User record (Parent)
 -- We manually specify a UUID so we can reference it in the next step
 INSERT INTO users (user_id, email, password, role)
-VALUES ('00000000-0000-0000-0000-000000000000', 'admin@pasar.com', 'admin123', 'ADMIN');
+VALUES ('00000000-0000-0000-0000-000000000000', 'admin@pasar.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ADMIN');
 
 -- 2. Create the Administrator record (Child)
 -- This links the 'user_id' from the record above
