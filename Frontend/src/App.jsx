@@ -10,6 +10,7 @@ import OrderDetails from "./pages/OrderDetails";
 import CustomerDashboard from './pages/CustomerDashboard';
 import Login from './pages/TempLogin';
 import Cart from './pages/Cart';
+import AdminDashboard from "./pages/AdminDashboard";
 
 
 
@@ -25,6 +26,8 @@ function App() {
         <Route path="/customer/orders" element={<MyOrders />} />
         <Route path="/customer/orderDetails" element={<OrderDetails />} />
         <Route path="/login" element={<Login />} />
+
+        <Route path="/admin" element={<AdminDashboard />} />
 
 
       </Routes>

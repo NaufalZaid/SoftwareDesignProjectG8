@@ -38,6 +38,7 @@ function Login() {
             //  Store session data
             localStorage.setItem("userId", user.userID);
             localStorage.setItem("role", role);
+            localStorage.setItem("email", user.email);
 
             alert("Login successful");
 
@@ -49,7 +50,7 @@ function Login() {
                 navigate("/");
             }
             else if (role === "ADMIN") {
-                navigate("/");
+                navigate("/admin");
             }
             else {
                 navigate("/");
