@@ -33,7 +33,7 @@ public class NotificationService implements Observer, CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) { // this runs as soon as the project is launched
         // Register this service as an observer of the OrderService
         orderService.attach(this);
     }
