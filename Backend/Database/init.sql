@@ -138,6 +138,7 @@ CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
 
 -- 1. Create the User record (Parent)
 -- We manually specify a UUID so we can reference it in the next step
+-- password = "admin123"
 INSERT INTO users (user_id, email, password, role)
 VALUES ('00000000-0000-0000-0000-000000000000', 'admin@pasar.com', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', 'ADMIN');
 
