@@ -12,14 +12,14 @@ export function addToCart(product) {
     const cart = getCart();
 
     const existing = cart.find(
-        item => item.productId === product.id   // ✅ FIX HERE
+        item => item.productId === product.id   //  FIX HERE
     );
 
     if (existing) {
         existing.quantity += 1;
     } else {
         cart.push({
-            productId: product.id,              // ✅ FIX HERE
+            productId: product.id,              //  FIX HERE
             name: product.name,
             price: product.price,
             quantity: 1

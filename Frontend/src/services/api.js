@@ -8,6 +8,16 @@ export async function getAllProducts() {
     return res.json();
 }
 
+/*  CATEGORY FILTER */
+export async function getProductsByCategory(category) {
+    const res = await fetch(
+        `${API_BASE}/products/filter?category=${encodeURIComponent(category)}`
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch products by category");
+    return res.json();
+}
+
 /* ================= CUSTOMER: ORDERS ================= */
 
 export async function placeOrder(customerId, productId, quantity, address) {
@@ -22,7 +32,7 @@ export async function placeOrder(customerId, productId, quantity, address) {
         throw new Error(msg || "Failed to place order");
     }
 
-    return res.json(); // Order
+    return res.json();
 }
 
 export async function getMyOrders(customerId) {
@@ -65,7 +75,7 @@ export async function getWalletBalance(userId) {
     );
 
     if (!res.ok) throw new Error("Failed to fetch balance");
-    return res.json(); // BigDecimal → number
+    return res.json();
 }
 
 export async function topUpWallet(userId, amount) {
