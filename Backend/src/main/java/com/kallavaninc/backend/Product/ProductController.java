@@ -3,10 +3,7 @@ package com.kallavaninc.backend.Product;
 import com.kallavaninc.backend.Entities.Product.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,4 +29,11 @@ public class ProductController {
     public ResponseEntity<List<Product>> getBySeller(@PathVariable UUID sellerId) {
         return ResponseEntity.ok(productService.getProductsBySeller(sellerId));
     }
+
+    @GetMapping("/filter")
+    public ResponseEntity<List<Product>> filterByCategory(@RequestParam String category) {
+        List<Product> filteredProducts = productService.getProductsByCategory(category);
+        return ResponseEntity.ok(filteredProducts);
+    }
+
 }

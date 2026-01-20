@@ -35,6 +35,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
+    private String category;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
@@ -49,7 +51,7 @@ public class Product {
     public Product() {
     }
 
-    public Product(String sku, String name, String brand, String description, BigDecimal price, ProductStatus status, List<ProductImage> images, Seller seller) {
+    public Product(String sku, String name, String brand, String description, BigDecimal price, ProductStatus status, List<ProductImage> images, Seller seller, String category) {
         this.sku = sku;
         this.name = name;
         this.brand = brand;
@@ -58,5 +60,6 @@ public class Product {
         this.status = status;
         this.images = (images != null) ? images : new ArrayList<>();
         this.seller = seller;
+        this.category = category;
     }
 }
