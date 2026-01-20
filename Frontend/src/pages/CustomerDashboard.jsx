@@ -119,19 +119,18 @@ export default function CustomerDashboard() {
                         />
 
                         <div className="filter-row">
-                            <select
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Enter category (e.g. electronics)"
+                                style={{ width: "20%", height: "25px" }}
                                 value={selectedCategory}
                                 onChange={e => setSelectedCategory(e.target.value)}
-                            >
-                                <option value="">Select Category</option>
-                                <option value="ELECTRONICS">Electronics</option>
-                                <option value="FASHION">Fashion</option>
-                                <option value="BOOKS">Books</option>
-                                <option value="HOME">Home</option>
-                            </select>
+                            />
 
-                            <button onClick={handleFilter}>Filter</button>
-                            <button onClick={handleResetFilter}>Reset</button>
+
+                            <button style={{ height: "50px" }} onClick={handleFilter}>Filter</button>
+                            <button style={{ height: "50px" }} onClick={handleResetFilter}>Reset</button>
                         </div>
 
                         <div className="product-grid">
