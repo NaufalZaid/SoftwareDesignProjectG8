@@ -35,6 +35,7 @@ CREATE TABLE products (
                           sku VARCHAR(255) UNIQUE NOT NULL,
                           name VARCHAR(255) NOT NULL,
                           brand VARCHAR(255),
+                          category VARCHAR(255),
                           description TEXT,
                           price NUMERIC(10, 2), -- Maps to BigDecimal(10, 2)
                           status VARCHAR(50), -- Maps to Enum ProductStatus

@@ -96,6 +96,7 @@ public class ProductService {
         existingProduct.setBrand(updatedData.getBrand());
         existingProduct.setDescription(updatedData.getDescription());
         existingProduct.setPrice(updatedData.getPrice());
+        existingProduct.setCategory(updatedData.getCategory());
         existingProduct.setStatus(updatedData.getStatus());
         existingProduct.setSku(updatedData.getSku());
 
@@ -133,6 +134,13 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Product not found or unauthorized access"));
 
         productRepository.delete(product);
+    }
+
+    public List<Product> getProductsByCategory(String category) {
+        if (category == null || category.isEmpty()) {
+            return productRepository.findAll(); // Fallback: return everything if no category is provided
+        }
+        return productRepository.findByCategory(category);
     }
 }
 
