@@ -36,4 +36,12 @@ public class ProductController {
         return ResponseEntity.ok(filteredProducts);
     }
 
+    @PatchMapping("/{sellerId}/status/{productId}")
+    public ResponseEntity<Product> updateStatus(
+            @PathVariable UUID sellerId,
+            @PathVariable UUID productId,
+            @RequestParam Product.ProductStatus status) {
+
+        return ResponseEntity.ok(productService.updateProductStatus(sellerId, productId, status));
+    }
 }

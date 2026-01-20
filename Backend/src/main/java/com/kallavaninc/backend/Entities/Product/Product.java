@@ -1,5 +1,6 @@
 package com.kallavaninc.backend.Entities.Product;
 
+import com.kallavaninc.backend.Entities.Inventory.Inventory;
 import com.kallavaninc.backend.Entities.Users.Seller;
 import jakarta.persistence.*;
 import lombok.*;

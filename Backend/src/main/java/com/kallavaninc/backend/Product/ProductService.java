@@ -2,9 +2,11 @@ package com.kallavaninc.backend.Product;
 
 
 import com.kallavaninc.backend.Authentication.AuthenticationRepository;
+import com.kallavaninc.backend.Entities.Inventory.Inventory;
 import com.kallavaninc.backend.Entities.Product.Product;
 import com.kallavaninc.backend.Entities.Product.ProductImage;
 import com.kallavaninc.backend.Entities.Users.Seller;
+import com.kallavaninc.backend.Inventory.InventoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,11 +26,13 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final AuthenticationRepository authenticationRepository;
+    private final InventoryRepository inventoryRepository;
     private final String uploadPath = "/app/Images/";
 
-    public ProductService(ProductRepository productRepository, AuthenticationRepository authenticationRepository) {
+    public ProductService(ProductRepository productRepository, AuthenticationRepository authenticationRepository, InventoryRepository inventoryRepository) {
         this.productRepository = productRepository;
         this.authenticationRepository = authenticationRepository;
+        this.inventoryRepository = inventoryRepository;
     }
 
     public List<Product> getAllProducts() {
@@ -45,7 +49,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Product addProduct(UUID sellerId, Product product, List<MultipartFile> files) throws IOException {
+    public Product addProduct(UUID sellerId, Product product, List<MultipartFile> files, Integer initialStock) throws IOException {
         // 1. Find the Seller
         Seller seller = (Seller) authenticationRepository.findById(sellerId)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
@@ -77,21 +81,24 @@ public class ProductService {
             }
         }
 
-        return productRepository.save(product);
-    }
+        Product savedProduct = productRepository.save(product);
 
+        Inventory inventory = new Inventory();
+        inventory.setProduct(product);
+        inventory.setQuantity(initialStock != null ? initialStock : 0);
+        inventory.setSeller(seller);
+
+        inventoryRepository.save(inventory);
+
+        return savedProduct;
+    }
     @Transactional
-    public Product updateProduct(UUID sellerId, UUID productId, Product updatedData, List<MultipartFile> newFiles) throws IOException {
+    public Product updateProduct(UUID sellerId, UUID productId, Product updatedData, Integer newQuantity, List<MultipartFile> newFiles) throws IOException {
         // 1. Ensure the product exists and belongs to this seller
         Product existingProduct = productRepository.findByIdAndSellerUserID(productId, sellerId)
                 .orElseThrow(() -> new RuntimeException("Product not found or unauthorized access"));
 
-        // 2. Defensive Null-Check: Ensure existing collection is ready for operations
-        if (existingProduct.getImages() == null) {
-            existingProduct.setImages(new ArrayList<>());
-        }
-
-        // 3. Update basic fields
+        // 2. Update basic fields
         existingProduct.setName(updatedData.getName());
         existingProduct.setBrand(updatedData.getBrand());
         existingProduct.setDescription(updatedData.getDescription());
@@ -100,15 +107,23 @@ public class ProductService {
         existingProduct.setStatus(updatedData.getStatus());
         existingProduct.setSku(updatedData.getSku());
 
+        // 3. Update Inventory (Independent of Product Entity)
+        if (newQuantity != null) {
+            Inventory inventory = inventoryRepository.findByProductId(productId)
+                    .orElseThrow(() -> new RuntimeException("Inventory not found for this product"));
+            inventory.setQuantity(newQuantity);
+            inventoryRepository.save(inventory); // Manually save since it's no longer cascaded
+        }
+
         // 4. Handle Images (Replacing old with new)
         if (newFiles != null && !newFiles.isEmpty()) {
-            // Delete physical files from /app/Images folder
+            // Delete physical files from Docker volume /app/Images
             for (ProductImage oldImg : existingProduct.getImages()) {
                 Path oldPath = Paths.get(uploadPath).resolve(oldImg.getFileName());
                 Files.deleteIfExists(oldPath);
             }
 
-            // Clear database records
+            // Clear old database records
             existingProduct.getImages().clear();
 
             for (MultipartFile file : newFiles) {
@@ -128,10 +143,15 @@ public class ProductService {
 
     // --- DELETE PRODUCT ---
     @Transactional
-    public void deleteProduct(UUID sellerId, UUID productId) {
-        // Verify ownership before deleting
+    public void deleteProduct(UUID sellerId, UUID productId) throws IOException {
         Product product = productRepository.findByIdAndSellerUserID(productId, sellerId)
                 .orElseThrow(() -> new RuntimeException("Product not found or unauthorized access"));
+
+        // Delete physical files associated with the product
+        for (ProductImage img : product.getImages()) {
+            Path path = Paths.get(uploadPath).resolve(img.getFileName());
+            Files.deleteIfExists(path);
+        }
 
         productRepository.delete(product);
     }
@@ -141,6 +161,19 @@ public class ProductService {
             return productRepository.findAll(); // Fallback: return everything if no category is provided
         }
         return productRepository.findByCategory(category);
+    }
+
+    @Transactional
+    public Product updateProductStatus(UUID sellerId, UUID productId, Product.ProductStatus newStatus) {
+        // 1. Authorization check
+        Product product = productRepository.findByIdAndSellerUserID(productId, sellerId)
+                .orElseThrow(() -> new RuntimeException("Product not found or unauthorized access"));
+
+        // 2. Update the status enum
+        product.setStatus(newStatus);
+
+        // 3. Save and return
+        return productRepository.save(product);
     }
 }
 
