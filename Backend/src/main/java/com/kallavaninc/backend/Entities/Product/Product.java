@@ -35,9 +35,7 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
-    // One product can have many images
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -58,7 +56,7 @@ public class Product {
         this.description = description;
         this.price = price;
         this.status = status;
-        this.images = images;
+        this.images = (images != null) ? images : new ArrayList<>();
         this.seller = seller;
     }
 }

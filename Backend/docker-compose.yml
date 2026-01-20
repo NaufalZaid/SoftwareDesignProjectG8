@@ -27,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - ./Images:/app/Images
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/PASAR_db
       SPRING_DATASOURCE_USERNAME: user
