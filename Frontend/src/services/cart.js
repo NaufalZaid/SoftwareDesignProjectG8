@@ -4,36 +4,47 @@ export function getCart() {
     return JSON.parse(localStorage.getItem(CART_KEY)) || [];
 }
 
+export function saveCart(cart) {
+    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+}
+
 export function addToCart(product) {
     const cart = getCart();
-    const existing = cart.find(p => p.productId === product.id);
+
+    const existing = cart.find(
+        item => item.productId === product.id   // ✅ FIX HERE
+    );
 
     if (existing) {
         existing.quantity += 1;
     } else {
         cart.push({
-            productId: product.id,
+            productId: product.id,              // ✅ FIX HERE
             name: product.name,
             price: product.price,
             quantity: 1
         });
     }
 
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    saveCart(cart);
 }
 
-export function updateQuantity(productId, qty) {
+export function updateQuantity(productId, quantity) {
     const cart = getCart().map(item =>
         item.productId === productId
-            ? { ...item, quantity: qty }
+            ? { ...item, quantity }
             : item
     );
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+
+    saveCart(cart);
 }
 
 export function removeFromCart(productId) {
-    const cart = getCart().filter(item => item.productId !== productId);
-    localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    const cart = getCart().filter(
+        item => item.productId !== productId
+    );
+
+    saveCart(cart);
 }
 
 export function clearCart() {

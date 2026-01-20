@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
     getCart,
     updateQuantity,
     removeFromCart,
     clearCart
 } from "../services/cart";
+
 import {
     getCustomerProfile,
     placeOrder,
     getWalletBalance,
     payForOrder
 } from "../services/api";
-import { useNavigate } from "react-router-dom";
 
 export default function Cart() {
     const navigate = useNavigate();
@@ -21,6 +23,7 @@ export default function Cart() {
     const [shippingAddress, setShippingAddress] = useState("");
     const [walletBalance, setWalletBalance] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         if (!userId) {
@@ -37,8 +40,9 @@ export default function Cart() {
         ])
             .then(([profile, balance]) => {
                 if (!profile.shippingAddress) {
-                    throw new Error("No address");
+                    throw new Error("No shipping address");
                 }
+
                 setShippingAddress(profile.shippingAddress);
                 setWalletBalance(balance);
             })
@@ -49,24 +53,36 @@ export default function Cart() {
             .finally(() => setLoading(false));
     }, [userId, navigate]);
 
-    function refresh() {
+    function refreshCart() {
         setCart(getCart());
     }
 
     async function handleCheckout() {
         if (cart.length === 0) {
-            alert("No items added to cart");
+            alert("Your cart is empty");
             return;
         }
 
         if (!shippingAddress) {
-            alert("No shipping address found");
+            alert("Shipping address missing");
             return;
         }
 
+        const totalCost = cart.reduce(
+            (sum, item) => sum + item.price * item.quantity,
+            0
+        );
+
+        if (walletBalance < totalCost) {
+            alert("Insufficient wallet balance");
+            return;
+        }
+
+        setProcessing(true);
+
         try {
             for (const item of cart) {
-                // 1️⃣ Place order
+                // 1️⃣ Place order in backend
                 const order = await placeOrder(
                     userId,
                     item.productId,
@@ -74,7 +90,7 @@ export default function Cart() {
                     shippingAddress
                 );
 
-                // 2️⃣ Pay for order (THIS deducts wallet balance)
+                // 2️⃣ Pay for the order
                 await payForOrder(order.orderID);
             }
 
@@ -82,12 +98,17 @@ export default function Cart() {
             const updatedBalance = await getWalletBalance(userId);
             setWalletBalance(updatedBalance);
 
+            // 4️⃣ Clear frontend cart
             clearCart();
+            setCart([]);
+
             alert("Order placed and paid successfully");
             navigate("/customer");
         } catch (err) {
             console.error(err);
             alert("Checkout failed: " + err.message);
+        } finally {
+            setProcessing(false);
         }
     }
 
@@ -99,7 +120,9 @@ export default function Cart() {
         <div style={{ padding: 20 }}>
             <h2>Shopping Cart</h2>
 
-            {cart.length === 0 && <p>Your cart is empty.</p>}
+            {cart.length === 0 && (
+                <p>Your cart is empty.</p>
+            )}
 
             {cart.map(item => (
                 <div
@@ -115,11 +138,14 @@ export default function Cart() {
 
                     <input
                         type="number"
-                        value={item.quantity}
                         min="1"
+                        value={item.quantity}
                         onChange={e => {
-                            updateQuantity(item.productId, Number(e.target.value));
-                            refresh();
+                            updateQuantity(
+                                item.productId,
+                                Number(e.target.value)
+                            );
+                            refreshCart();
                         }}
                     />
 
@@ -127,7 +153,7 @@ export default function Cart() {
                         style={{ marginLeft: 10 }}
                         onClick={() => {
                             removeFromCart(item.productId);
-                            refresh();
+                            refreshCart();
                         }}
                     >
                         Remove
@@ -141,12 +167,17 @@ export default function Cart() {
             </div>
 
             <div style={{ marginTop: 10 }}>
-                <p><strong>Wallet Balance:</strong> RM {walletBalance}</p>
+                <p>
+                    <strong>Wallet Balance:</strong> RM {walletBalance}
+                </p>
             </div>
 
             <div style={{ marginTop: 20 }}>
-                <button onClick={handleCheckout}>
-                    Place Order & Pay
+                <button
+                    disabled={processing}
+                    onClick={handleCheckout}
+                >
+                    {processing ? "Processing..." : "Place Order & Pay"}
                 </button>
 
                 <button

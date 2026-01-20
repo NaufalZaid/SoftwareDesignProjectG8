@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AuthForm.css";
 
+import { deleteProduct } from "../services/api";
+
+const IMAGE_BASE_URL = "http://localhost:8080/product-images/";
+
 function ProductList() {
     const sellerId = localStorage.getItem("userId");
     const role = localStorage.getItem("role");
@@ -10,83 +14,76 @@ function ProductList() {
     const [products, setProducts] = useState([]);
     const [error, setError] = useState(null);
 
-    // 🔐 Access control
+    /* ================= ACCESS CONTROL ================= */
     if (role !== "SELLER") {
         return <p>Access denied. Sellers only.</p>;
     }
 
+    /* ================= LOAD PRODUCTS ================= */
     useEffect(() => {
-        const loadProducts = async () => {
-            try {
-                const response = await fetch(
-                    `/api/v1/products/seller/${sellerId}`
-                );
+        if (!sellerId) return;
 
-                if (!response.ok) {
-                    throw new Error("Failed to load products");
-                }
-
-                //  Backend no longer sends binary imageData
-                const data = await response.json();
-                setProducts(data);
-
-            } catch (err) {
-                console.error(err);
-                setError("Failed to load products");
-            }
-        };
-
-        loadProducts();
+        fetch(`/api/v1/products/seller/${sellerId}`)
+            .then(res => {
+                if (!res.ok) throw new Error();
+                return res.json();
+            })
+            .then(data => setProducts(data || []))
+            .catch(() => setError("Failed to load products"));
     }, [sellerId]);
 
-    const deleteProduct = async (productId) => {
+    async function handleDelete(productId) {
         if (!window.confirm("Delete this product?")) return;
 
         try {
-            const response = await fetch(
-                `/api/v1/seller/${sellerId}/products/${productId}`,
-                { method: "DELETE" }
-            );
-
-            if (!response.ok) {
-                throw new Error("Delete failed");
-            }
-
-            setProducts(prev =>
-                prev.filter(p => p.id !== productId)
-            );
-        } catch (err) {
-            alert(err.message);
+            await deleteProduct(sellerId, productId);
+            setProducts(prev => prev.filter(p => p.id !== productId));
+        } catch (e) {
+            alert(e.message || "Delete failed");
         }
-    };
+    }
 
+    /* ================= UI ================= */
     return (
         <div className="auth-page">
-            <div className="auth-card">
+            <div className="auth-card" style={{ width: "90%" }}>
                 <h2 className="auth-title">My Products</h2>
 
                 {error && <p style={{ color: "red" }}>{error}</p>}
 
-                {products.length === 0 && (
-                    <p>No products found.</p>
-                )}
+                {products.length === 0 && <p>No products found.</p>}
 
-                {products.map(product => (
-                    <div
-                        key={product.id}
-                        style={{
-                            borderBottom: "1px solid #ddd",
-                            paddingBottom: "1rem",
-                            marginBottom: "1rem"
-                        }}
-                    >
-                        <strong>{product.name}</strong>
-                        <br />
-                        Price: ${product.price}
-                        <br />
-                        Status: {product.status}
+                <div style={{ display: "flex", flexWrap: "wrap" }}>
+                    {products.map(product => (
+                        <div
+                            key={product.id}
+                            style={{
+                                border: "1px solid #ddd",
+                                padding: "1rem",
+                                margin: "1rem",
+                                width: 320
+                            }}
+                        >
+                            {product.images?.length > 0 && (
+                                <img
+                                    src={`${IMAGE_BASE_URL}${product.images[0].fileName}`}
+                                    alt={product.name}
+                                    style={{
+                                        width: "100%",
+                                        height: 160,
+                                        objectFit: "cover",
+                                        marginBottom: "0.5rem"
+                                    }}
+                                />
+                            )}
 
-                        <div style={{ marginTop: "0.5rem" }}>
+                            <h3>{product.name}</h3>
+                            <p><strong>SKU:</strong> {product.sku}</p>
+                            <p><strong>Brand:</strong> {product.brand}</p>
+                            <p>{product.description}</p>
+                            <p><strong>Price:</strong> RM {product.price}</p>
+                            <p><strong>Status:</strong> {product.status}</p>
+
                             <button
                                 className="auth-button"
                                 onClick={() =>
@@ -102,16 +99,17 @@ function ProductList() {
                                     marginLeft: "1rem",
                                     backgroundColor: "#b91c1c"
                                 }}
-                                onClick={() => deleteProduct(product.id)}
+                                onClick={() => handleDelete(product.id)}
                             >
                                 Delete
                             </button>
                         </div>
-                    </div>
-                ))}
+                    ))}
+                </div>
 
                 <button
                     className="auth-button"
+                    style={{ marginTop: "1rem" }}
                     onClick={() => navigate("/seller/dashboard")}
                 >
                     Back to Dashboard

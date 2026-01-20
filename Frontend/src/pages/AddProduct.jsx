@@ -8,47 +8,54 @@ function AddProduct() {
     const sellerId = localStorage.getItem("userId");
     const role = localStorage.getItem("role");
 
-    // 🔐 Access control
+    /* ================= ACCESS CONTROL ================= */
     if (role !== "SELLER") {
         return <p>Access denied. Sellers only.</p>;
     }
 
     const [product, setProduct] = useState({
+        sku: "",
         name: "",
+        brand: "",
         description: "",
         price: "",
-        sku: "",
         status: "AVAILABLE"
     });
 
     const [images, setImages] = useState([]);
 
-    const handleChange = (e) => {
+    /* ================= HANDLERS ================= */
+    function handleChange(e) {
         setProduct({
             ...product,
             [e.target.name]: e.target.value
         });
-    };
+    }
 
-    const handleImageChange = (e) => {
-        setImages(e.target.files);
-    };
+    function handleImageChange(e) {
+        setImages(Array.from(e.target.files));
+    }
 
-    const handleSubmit = async (e) => {
+    async function handleSubmit(e) {
         e.preventDefault();
 
-        //  Exact Product entity match (NO seller, NO images)
+        if (Number(product.price) <= 0) {
+            alert("Price must be greater than 0");
+            return;
+        }
+
         const productPayload = {
+            sku: product.sku,
             name: product.name,
+            brand: product.brand,
             description: product.description,
             price: Number(product.price),
-            sku: product.sku,
             status: product.status
         };
 
         const formData = new FormData();
 
-        //  REQUIRED: product must be JSON Blob
+        // REQUIRED: product JSON
         formData.append(
             "product",
             new Blob([JSON.stringify(productPayload)], {
@@ -56,13 +63,13 @@ function AddProduct() {
             })
         );
 
-        //  Append images correctly
-        for (let i = 0; i < images.length; i++) {
-            formData.append("images", images[i]);
-        }
+        // REQUIRED: files (not images)
+        images.forEach(file => {
+            formData.append("files", file);
+        });
 
         try {
-            const response = await fetch(
+            const res = await fetch(
                 `/api/v1/seller/${sellerId}/addProduct`,
                 {
                     method: "POST",
@@ -70,8 +77,8 @@ function AddProduct() {
                 }
             );
 
-            if (!response.ok) {
-                throw new Error(await response.text());
+            if (!res.ok) {
+                throw new Error(await res.text());
             }
 
             alert("Product added successfully");
@@ -80,14 +87,24 @@ function AddProduct() {
         } catch (err) {
             alert(err.message);
         }
-    };
+    }
 
+    /* ================= UI ================= */
     return (
         <div className="auth-page">
             <div className="auth-card">
                 <h2 className="auth-title">Add Product</h2>
 
                 <form className="auth-form" onSubmit={handleSubmit}>
+                    <input
+                        className="auth-input"
+                        name="sku"
+                        placeholder="SKU"
+                        value={product.sku}
+                        onChange={handleChange}
+                        required
+                    />
+
                     <input
                         className="auth-input"
                         name="name"
@@ -97,10 +114,19 @@ function AddProduct() {
                         required
                     />
 
+                    <input
+                        className="auth-input"
+                        name="brand"
+                        placeholder="Brand"
+                        value={product.brand}
+                        onChange={handleChange}
+                        required
+                    />
+
                     <textarea
                         className="auth-input"
                         name="description"
-                        placeholder="Product Description"
+                        placeholder="Description"
                         value={product.description}
                         onChange={handleChange}
                         required
@@ -113,15 +139,6 @@ function AddProduct() {
                         step="0.01"
                         placeholder="Price"
                         value={product.price}
-                        onChange={handleChange}
-                        required
-                    />
-
-                    <input
-                        className="auth-input"
-                        name="sku"
-                        placeholder="SKU"
-                        value={product.sku}
                         onChange={handleChange}
                         required
                     />
