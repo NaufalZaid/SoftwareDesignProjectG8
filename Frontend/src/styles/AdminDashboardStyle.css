@@ -1,130 +1,147 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px;
+  color: #eaeaea;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
 
-  .page {
-    max-width: 1100;
-    margin: "0 auto";
-    padding: 16;
-    color: "#eaeaea";
-    font-family:
-      'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
-  }
-  .header {
-    display: "flex";
-    justify-content: "space-between";
-    gap: 12;
-    align-items: "center";
-    margin-bottom: 12;
-  }
-  .title { margin: 0; font-size: 26; }
-  .subTitle { opacity: 0.85; margin-top: 4; }
-  .logoutBtn {
-    background: "#2b2b2b";
-    color: "#fff";
-    border: "1px solid #3a3a3a";
-    border-radius: 10;
-    padding: "10px 14px";
-    cursor: "pointer";
-  }
-  .card {
-    background: "#171717";
-    border: "1px solid #2b2b2b";
-    border-radius: 14;
-    padding: 14;
-    margin-bottom: 12;
-    box-shadow: "0 10px 30px rgba(0,0,0,0.25)";
-  }
-  .sectionTitle { margin: "0 0 8px"; font-size: 18; }
-  .helpText { opacity: 0.85; font-size: 13; margin-bottom: 10; }
-  .row { display: "flex"; gap: 10; align-items: "center"; flex-wrap: "wrap" }
-  .input {
-    min-width: 260;
-    flex: 1;
-    padding: "10px 12px";
-    border-radius: 10;
-    border: "1px solid #333";
-    background: "#0f0f0f";
-    color: "#fff";
-    outline: "none";
-  }
-  .textarea {
-    width: "100%";
-    min-height: 280;
-    padding: 12;
-    border-radius: 10;
-    border: "1px solid #333";
-    background: "#0f0f0f";
-    color: "#fff";
-    outline: "none";
-    font-family: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
-    font-size: 13;
-  }
-  .primaryBtn {
-    background: "#3b82f6";
-    color: "#fff";
-    border: "none";
-    border-radius: 10;
-    padding: "10px 14px";
-    cursor: "pointer";
-    font-weight: 700;
-  }
-  .secondaryBtn {
-    background: "#2b2b2b";
-    color: "#fff";
-    border: "1px solid #3a3a3a";
-    border-radius: 10;
-    padding: "10px 14px";
-    cursor: "pointer";
-    font-weight: 700;
-  }
-  .successBtn {
-    background: "#16a34a";
-    color: "#fff";
-    border: "none";
-    border-radius: 10;
-    padding: "10px 14px";
-    cursor: "pointer";
-    font-weight: 700;
-  }
-  .errorBox {
-    margin-top: 10;
-    background: "rgba(239,68,68,0.12)";
-    border: "1px solid rgba(239,68,68,0.35)";
-    color: "#ffd5d5";
-    border-radius: 12;
-    padding: 10;
-    white-space: "pre-wrap";
-  }
-  .tabRow { display: "flex"; gap: 10; flex-wrap: "wrap"; margin-bottom: 12; }
-  .tabBtn {
-    background: "#202020";
-    border: "1px solid #2b2b2b";
-    color: "#fff";
-    border-radius: 999;
-    padding: "10px 14px";
-    cursor: "pointer";
-    opacity: 0.85;
-  }
-  .tabBtnActive {
-    opacity: 1;
-    border-color: "#3b82f6";
-  }
-  .kvGrid {
-    display: "grid";
-    grid-template-columns: "repeat(auto-fit, minmax(240px, 1fr))";
-    gap: 10;
-  }
-  .kv {
-    background: "#101010";
-    border: "1px solid #2b2b2b";
-    border-radius: 12;
-    padding: 10;
-  }
-  .kvLabel { font-size: 12; opacity: 0.8; }
-  .kvValue { margin-top: 6; font-weight: 700; word-break: "break-word"; }
-  .pre {
-    background: "#0b0b0b";
-    border: "1px solid #2b2b2b";
-    border-radius: 12;
-    padding: 12;
-    overflow-x: "auto";
-    font-size: 12;
-  }
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.title { margin: 0; font-size: 26px; }
+.subTitle { opacity: 0.85; margin-top: 4px; }
+
+.logoutBtn {
+  background: #2b2b2b;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+
+.card {
+  background: #171717;
+  border: 1px solid #2b2b2b;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+
+.sectionTitle { margin: 0 0 8px; font-size: 18px; }
+.helpText { opacity: 0.85; font-size: 13px; margin-bottom: 10px; }
+
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.input {
+  min-width: 260px;
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  outline: none;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 280px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  outline: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 13px;
+}
+
+.primaryBtn {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.secondaryBtn {
+  background: #2b2b2b;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.successBtn {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.errorBox {
+  margin-top: 10px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.35);
+  color: #ffd5d5;
+  border-radius: 12px;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
+.tabRow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+
+.tabBtn {
+  background: #202020;
+  border: 1px solid #2b2b2b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 14px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+
+.tabBtnActive {
+  opacity: 1;
+  border-color: #3b82f6;
+}
+
+.kvGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.kv {
+  background: #101010;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.kvLabel { font-size: 12px; opacity: 0.8; }
+.kvValue { margin-top: 6px; font-weight: 700; word-break: break-word; }
+
+.pre {
+  background: #0b0b0b;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  font-size: 12px;
+}
