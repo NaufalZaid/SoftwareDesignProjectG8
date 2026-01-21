@@ -37,9 +37,10 @@ public class SellerController {
     public ResponseEntity<Product> addProduct(
             @PathVariable UUID sellerId,
             @RequestPart("product") Product product,
+            @RequestParam("initialStock") Integer initialStock,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
-        return ResponseEntity.ok(productService.addProduct(sellerId, product, images));
+        return ResponseEntity.ok(productService.addProduct(sellerId, product, images, initialStock));
     }
 
     // UPDATE: Use PUT for modifying existing resources
@@ -48,16 +49,17 @@ public class SellerController {
             @PathVariable UUID sellerId,
             @PathVariable UUID productId,
             @RequestPart("product") Product product,
+            @RequestParam("newStock") Integer newStock,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) throws IOException {
 
-        return ResponseEntity.ok(productService.updateProduct(sellerId, productId, product, images));
+        return ResponseEntity.ok(productService.updateProduct(sellerId, productId, product, newStock, images));
     }
 
     // DELETE: Use DELETE for removing resources
     @DeleteMapping("/{sellerId}/products/{productId}")
     public ResponseEntity<String> deleteProduct(
             @PathVariable UUID sellerId,
-            @PathVariable UUID productId) {
+            @PathVariable UUID productId) throws IOException {
 
         productService.deleteProduct(sellerId, productId);
         return ResponseEntity.ok("Product deleted successfully");
