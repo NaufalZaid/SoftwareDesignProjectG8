@@ -1,152 +1,204 @@
 import { useEffect, useState } from "react";
-import {
-    getSellerProducts,
-    createProduct,
-    updateProduct,
-    deleteProduct
-} from "../services/productService";
+import { useNavigate } from "react-router-dom";
+import SellerLayout from "../layout/SellerLayout";
+import "../styles/SellerProducts.css";
 
 export default function SellerProducts() {
     const sellerId = localStorage.getItem("userId");
+    const navigate = useNavigate();
 
     const [products, setProducts] = useState([]);
-    const [editingId, setEditingId] = useState(null);
+    const [editing, setEditing] = useState(null);
+    const [form, setForm] = useState({});
 
-    const [form, setForm] = useState({
-        name: "",
-        brand: "",
-        price: "",
-        status: "AVAILABLE"
-    });
+    if (!sellerId) {
+        return <p className="auth-warning">Please login as seller.</p>;
+    }
 
     useEffect(() => {
-        loadProducts();
+        fetchProducts();
     }, []);
 
-    async function loadProducts() {
-        const data = await getSellerProducts(sellerId);
+    async function fetchProducts() {
+        const res = await fetch(`/api/v1/products/seller/${sellerId}`);
+        const data = await res.json();
         setProducts(data);
     }
 
-    function handleChange(e) {
-        setForm({ ...form, [e.target.name]: e.target.value });
+    function startEdit(product) {
+        setEditing(product.id);
+        setForm(product);
     }
 
-    async function handleSubmit(e) {
-        e.preventDefault();
+    function cancelEdit() {
+        setEditing(null);
+        setForm({});
+    }
 
-        const payload = {
-            ...form,
-            price: Number(form.price),
-            sellerId
-        };
+    async function saveEdit(productId) {
+        const formData = new FormData();
+        formData.append(
+            "product",
+            new Blob([JSON.stringify(form)], {
+                type: "application/json"
+            })
+        );
 
-        try {
-            if (editingId) {
-                await updateProduct(editingId, payload);
-            } else {
-                await createProduct(payload);
+        await fetch(
+            `/api/v1/seller/${sellerId}/products/${productId}`,
+            {
+                method: "PUT",
+                body: formData
             }
+        );
 
-            resetForm();
-            loadProducts();
-        } catch (err) {
-            alert(err.message);
-        }
+        cancelEdit();
+        fetchProducts();
     }
 
-    function editProduct(p) {
-        setEditingId(p.id);
-        setForm({
-            name: p.name,
-            brand: p.brand,
-            price: p.price,
-            status: p.status
-        });
-    }
-
-    async function removeProduct(id) {
+    async function deleteProduct(productId) {
         if (!window.confirm("Delete this product?")) return;
-        await deleteProduct(id);
-        loadProducts();
-    }
 
-    function resetForm() {
-        setEditingId(null);
-        setForm({
-            name: "",
-            brand: "",
-            price: "",
-            status: "AVAILABLE"
-        });
+        await fetch(
+            `/api/v1/seller/${sellerId}/products/${productId}`,
+            { method: "DELETE" }
+        );
+
+        fetchProducts();
     }
 
     return (
-        <div style={{ padding: 20 }}>
-            <h2>Manage Product Listings</h2>
-
-            {/* Product Form */}
-            <form onSubmit={handleSubmit} style={{ marginBottom: 30 }}>
-                <input
-                    name="name"
-                    placeholder="Product Name"
-                    value={form.name}
-                    onChange={handleChange}
-                    required
-                />
-                <input
-                    name="brand"
-                    placeholder="Brand"
-                    value={form.brand}
-                    onChange={handleChange}
-                />
-                <input
-                    name="price"
-                    type="number"
-                    placeholder="Price"
-                    value={form.price}
-                    onChange={handleChange}
-                    required
-                />
-
-                <select name="status" value={form.status} onChange={handleChange}>
-                    <option value="AVAILABLE">Available</option>
-                    <option value="OUT_OF_STOCK">Out of Stock</option>
-                    <option value="DISCONTINUED">Discontinued</option>
-                </select>
-
-                <button type="submit">
-                    {editingId ? "Update Product" : "Add Product"}
-                </button>
-
-                {editingId && (
-                    <button type="button" onClick={resetForm}>
-                        Cancel
-                    </button>
-                )}
-            </form>
-
-            {/* Product List */}
-            {products.map(p => (
-                <div
-                    key={p.id}
-                    style={{
-                        border: "1px solid #ccc",
-                        padding: 10,
-                        marginBottom: 10
-                    }}
-                >
-                    <h4>{p.name}</h4>
-                    <p>Brand: {p.brand}</p>
-                    <p>RM {p.price}</p>
-                    <p>Status: {p.status}</p>
-
-                    <button onClick={() => editProduct(p)}>Edit</button>
-                    <button onClick={() => removeProduct(p.id)}>
-                        Delete
-                    </button>
+        <SellerLayout>
+        <div className="seller-products-page">
+            <header className="products-header">
+                <div>
+                    <h1>My Products</h1>
+                    <p>Manage your listed products</p>
                 </div>
-            ))}
+
+                <button
+                    className="primary"
+                    onClick={() => navigate("/seller/add-product")}
+                >
+                    Add Product
+                </button>
+            </header>
+
+            {products.length === 0 && (
+                <p className="muted">No products listed yet.</p>
+            )}
+
+            <div className="products-grid">
+                {products.map(p => (
+                    <div className="product-card" key={p.id}>
+                        {editing === p.id ? (
+                            <>
+                                <div className="edit-group">
+                                    <label>Name</label>
+                                    <input
+                                        value={form.name}
+                                        onChange={e =>
+                                            setForm({
+                                                ...form,
+                                                name: e.target.value
+                                            })
+                                        }
+                                    />
+                                </div>
+
+                                <div className="edit-grid">
+                                    <div className="edit-group">
+                                        <label>Price (RM)</label>
+                                        <input
+                                            value={form.price}
+                                            type="number"
+                                            onChange={e =>
+                                                setForm({
+                                                    ...form,
+                                                    price: e.target.value
+                                                })
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="edit-group">
+                                        <label>Stock</label>
+                                        <input
+                                            value={form.quantity}
+                                            type="number"
+                                            onChange={e =>
+                                                setForm({
+                                                    ...form,
+                                                    quantity: e.target.value
+                                                })
+                                            }
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="edit-group">
+                                    <label>Description</label>
+                                    <textarea
+                                        rows="3"
+                                        value={form.description || ""}
+                                        onChange={e =>
+                                            setForm({
+                                                ...form,
+                                                description: e.target.value
+                                            })
+                                        }
+                                    />
+                                </div>
+
+                                <div className="card-actions">
+                                    <button
+                                        className="primary"
+                                        onClick={() => saveEdit(p.id)}
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        className="secondary"
+                                        onClick={cancelEdit}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="card-top">
+                                    <h3>{p.name}</h3>
+                                    <span className={`status ${p.status}`}>
+                                        {p.status}
+                                    </span>
+                                </div>
+
+                                <p className="price">RM {p.price}</p>
+                                <p className="stock">
+                                    Stock: <strong>{p.quantity}</strong>
+                                </p>
+
+                                <div className="card-actions">
+                                    <button
+                                        className="secondary"
+                                        onClick={() => startEdit(p)}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className="danger"
+                                        onClick={() => deleteProduct(p.id)}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
+        </SellerLayout>
     );
 }

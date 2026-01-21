@@ -11,16 +11,38 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.kallavaninc.backend.Entities.Users.Seller;
+import com.kallavaninc.backend.Seller.SellerRepository;
+
 @Service
+
 
 public class SellerService {
 
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final SellerRepository sellerRepository;
 
-    public SellerService(WalletRepository walletRepository, TransactionRepository transactionRepository) {
+    public SellerService(WalletRepository walletRepository, TransactionRepository transactionRepository, SellerRepository sellerRepository) {
         this.walletRepository = walletRepository;
         this.transactionRepository = transactionRepository;
+        this.sellerRepository = sellerRepository;
+    }
+
+    public SellerProfileDto getSellerProfile(UUID userId) {
+        Seller seller = sellerRepository
+                .findByUserID(userId)
+                .orElseThrow(() -> new RuntimeException("Seller not found"));
+
+        String status = seller.isApproved() ? "APPROVED" : "PENDING";
+
+        return new SellerProfileDto(
+                seller.getUserID(),
+                seller.getEmail(),
+                seller.getStoreName(),
+                status,
+                seller.getCreatedAt()
+        );
     }
 
     @Transactional

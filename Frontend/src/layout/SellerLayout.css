@@ -1,0 +1,119 @@
+/* ===== Layout ===== */
+.seller-layout {
+    display: flex;
+    min-height: 100vh;
+    background: #f3f4f6;
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+.seller-content {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+/* ===== Sidebar ===== */
+.seller-sidebar {
+    width: 260px;
+    background: #111827;
+    color: #f9fafb;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+}
+
+/* Header */
+.sidebar-header {
+    margin-bottom: 32px;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.sidebar-header .subtitle {
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+/* Nav */
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.nav-link {
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #d1d5db;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.nav-link:hover {
+    background: #1f2937;
+    color: #ffffff;
+}
+
+.nav-link.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+/* Footer */
+.sidebar-footer {
+    margin-top: auto;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #374151;
+    color: #f9fafb;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    background: #4b5563;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .seller-sidebar {
+        width: 200px;
+    }
+}
+
+@media (max-width: 640px) {
+    .seller-layout {
+        flex-direction: column;
+    }
+
+    .seller-sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .nav-link {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+
+    .seller-content {
+        padding: 20px;
+    }
+}

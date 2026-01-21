@@ -65,6 +65,13 @@ public class SellerController {
 
     // view all orders belonging to a specific Seller's products
     //sellers see what they need to fulfill
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<SellerProfileDto> getSellerProfile(@PathVariable UUID userId) {
+        return ResponseEntity.ok(sellerService.getSellerProfile(userId));
+    }
+
+
+
     @GetMapping("/seller/{sellerId}")
     public ResponseEntity<List<Order>> getOrdersBySeller(@PathVariable UUID sellerId) {
         return ResponseEntity.ok(orderService.getOrdersBySeller(sellerId));
@@ -107,6 +114,7 @@ public class SellerController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
 
 
 }
