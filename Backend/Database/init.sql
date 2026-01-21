@@ -35,16 +35,16 @@ CREATE TABLE products (
                           sku VARCHAR(255) UNIQUE NOT NULL,
                           name VARCHAR(255) NOT NULL,
                           brand VARCHAR(255),
+                          category VARCHAR(255),
                           description TEXT,
                           price NUMERIC(10, 2), -- Maps to BigDecimal(10, 2)
                           status VARCHAR(50), -- Maps to Enum ProductStatus
                           user_id UUID NOT NULL REFERENCES sellers(user_id) -- Foreign key to Seller subclass
 );
 
-CREATE TABLE product_images (
+CREATE TABLE products_images (
                                 id BIGSERIAL PRIMARY KEY,
                                 file_name VARCHAR(255),
-                                image_data BYTEA, -- Binary data for images
                                 product_id UUID NOT NULL REFERENCES products(product_id) ON DELETE CASCADE
 );
 
@@ -133,6 +133,14 @@ CREATE TABLE transactions (
                                   FOREIGN KEY (receiver_id) REFERENCES users(user_id)
                                       ON DELETE SET NULL
 );
+
+CREATE TABLE inventory (
+                           inventory_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                           product_id UUID UNIQUE REFERENCES products(product_id) ON DELETE CASCADE, -- Added UNIQUE
+                           seller_id UUID REFERENCES sellers(user_id) ON DELETE CASCADE,
+                           quantity INTEGER DEFAULT 0
+);
+
 CREATE INDEX idx_transactions_sender ON transactions(sender_id);
 CREATE INDEX idx_transactions_receiver ON transactions(receiver_id);
 
@@ -146,3 +154,7 @@ VALUES ('00000000-0000-0000-0000-000000000000', 'admin@pasar.com', '240be518fabd
 -- This links the 'user_id' from the record above
 INSERT INTO administrators (user_id)
 VALUES ('00000000-0000-0000-0000-000000000000');
+
+-- Add wallet for the Admin user
+INSERT INTO wallets (user_id, balance)
+VALUES ('00000000-0000-0000-0000-000000000000', 0.00);

@@ -29,7 +29,7 @@ function Home() {
                         onClick={() => navigate("/login")}
                         style={{ marginTop: "1rem" }}
                     >
-                        customer dashboard
+                        Login
                     </button>
                 </div>
             </div>

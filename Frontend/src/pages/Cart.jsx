@@ -1,17 +1,21 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
     getCart,
     updateQuantity,
     removeFromCart,
     clearCart
 } from "../services/cart";
+
 import {
     getCustomerProfile,
     placeOrder,
     getWalletBalance,
     payForOrder
 } from "../services/api";
-import { useNavigate } from "react-router-dom";
+
+import "../styles/Customer.css";
 
 export default function Cart() {
     const navigate = useNavigate();
@@ -21,6 +25,7 @@ export default function Cart() {
     const [shippingAddress, setShippingAddress] = useState("");
     const [walletBalance, setWalletBalance] = useState(0);
     const [loading, setLoading] = useState(true);
+    const [processing, setProcessing] = useState(false);
 
     useEffect(() => {
         if (!userId) {
@@ -37,8 +42,9 @@ export default function Cart() {
         ])
             .then(([profile, balance]) => {
                 if (!profile.shippingAddress) {
-                    throw new Error("No address");
+                    throw new Error("No shipping address");
                 }
+
                 setShippingAddress(profile.shippingAddress);
                 setWalletBalance(balance);
             })
@@ -49,45 +55,52 @@ export default function Cart() {
             .finally(() => setLoading(false));
     }, [userId, navigate]);
 
-    function refresh() {
+    function refreshCart() {
         setCart(getCart());
     }
 
     async function handleCheckout() {
         if (cart.length === 0) {
-            alert("No items added to cart");
+            alert("Your cart is empty");
             return;
         }
 
-        if (!shippingAddress) {
-            alert("No shipping address found");
+        const totalCost = cart.reduce(
+            (sum, item) => sum + item.price * item.quantity,
+            0
+        );
+
+        if (walletBalance < totalCost) {
+            alert("Insufficient wallet balance");
             return;
         }
+
+        setProcessing(true);
 
         try {
             for (const item of cart) {
-                // 1️⃣ Place order
                 const order = await placeOrder(
                     userId,
                     item.productId,
                     item.quantity,
                     shippingAddress
                 );
-
-                // 2️⃣ Pay for order (THIS deducts wallet balance)
                 await payForOrder(order.orderID);
             }
 
-            // 3️⃣ Refresh wallet balance
             const updatedBalance = await getWalletBalance(userId);
             setWalletBalance(updatedBalance);
 
             clearCart();
+            setCart([]);
+
             alert("Order placed and paid successfully");
             navigate("/customer");
         } catch (err) {
             console.error(err);
             alert("Checkout failed: " + err.message);
+        } finally {
+            setProcessing(false);
         }
     }
 
@@ -96,65 +109,67 @@ export default function Cart() {
     }
 
     return (
-        <div style={{ padding: 20 }}>
-            <h2>Shopping Cart</h2>
+        <div className="dashboard-bg">
+            <div className="dashboard-wrapper">
+                <h2>Shopping Cart</h2>
 
-            {cart.length === 0 && <p>Your cart is empty.</p>}
+                {cart.length === 0 && (
+                    <p>Your cart is empty.</p>
+                )}
 
-            {cart.map(item => (
-                <div
-                    key={item.productId}
-                    style={{
-                        border: "1px solid #ccc",
-                        padding: 10,
-                        marginBottom: 10
-                    }}
-                >
-                    <p><strong>{item.name}</strong></p>
-                    <p>Price: RM {item.price}</p>
+                {cart.map(item => (
+                    <div key={item.productId} className="order-card">
+                        <p><strong>{item.name}</strong></p>
+                        <p>Price: <span className="price">RM {item.price}</span></p>
 
-                    <input
-                        type="number"
-                        value={item.quantity}
-                        min="1"
-                        onChange={e => {
-                            updateQuantity(item.productId, Number(e.target.value));
-                            refresh();
-                        }}
-                    />
+                        <div className="cart-row">
+                            <input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={e => {
+                                    updateQuantity(
+                                        item.productId,
+                                        Number(e.target.value)
+                                    );
+                                    refreshCart();
+                                }}
+                            />
 
-                    <button
-                        style={{ marginLeft: 10 }}
-                        onClick={() => {
-                            removeFromCart(item.productId);
-                            refresh();
-                        }}
-                    >
-                        Remove
-                    </button>
+                            <button
+                                onClick={() => {
+                                    removeFromCart(item.productId);
+                                    refreshCart();
+                                }}
+                            >
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+                ))}
+
+                <div className="wallet-card">
+                    <h4>Shipping Address</h4>
+                    <p>{shippingAddress}</p>
+
+                    <p>
+                        <strong>Wallet Balance:</strong>{" "}
+                        <span className="price">RM {walletBalance}</span>
+                    </p>
+
+                    <div className="cart-actions">
+                        <button
+                            disabled={processing}
+                            onClick={handleCheckout}
+                        >
+                            {processing ? "Processing..." : "Place Order & Pay"}
+                        </button>
+
+                        <button onClick={() => navigate("/customer")}>
+                            Home
+                        </button>
+                    </div>
                 </div>
-            ))}
-
-            <div style={{ marginTop: 20 }}>
-                <h4>Shipping Address</h4>
-                <p>{shippingAddress}</p>
-            </div>
-
-            <div style={{ marginTop: 10 }}>
-                <p><strong>Wallet Balance:</strong> RM {walletBalance}</p>
-            </div>
-
-            <div style={{ marginTop: 20 }}>
-                <button onClick={handleCheckout}>
-                    Place Order & Pay
-                </button>
-
-                <button
-                    style={{ marginLeft: 10 }}
-                    onClick={() => navigate("/customer")}
-                >
-                    Home
-                </button>
             </div>
         </div>
     );
