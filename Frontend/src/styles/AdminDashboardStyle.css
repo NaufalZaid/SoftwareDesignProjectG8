@@ -289,3 +289,158 @@
   background: rgba(234, 179, 8, 0.2);
   color: #fbbf24;
 }
+
+/* ==================== CATEGORY MANAGEMENT ==================== */
+
+.categoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.categoryFormCard {
+  background: #101010;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.categoryFormCard h3 {
+  margin: 0 0 14px;
+  font-size: 16px;
+}
+
+.categoryFormGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.categoryFormGrid .full {
+  grid-column: 1 / -1;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formGroup label {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.categoryTextarea {
+  min-height: 80px;
+}
+
+.categoryFormActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.categoryTreeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 12px;
+  padding-top: 16px;
+  border-top: 1px solid #2b2b2b;
+}
+
+.categoryTreeHeader h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.categoryTree {
+  background: #101010;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.categoryItem {
+  margin-bottom: 4px;
+}
+
+.categoryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.categoryRow:hover {
+  background: #1a1a1a;
+}
+
+.categoryInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 4px;
+}
+
+.expandBtn:hover {
+  background: #2b2b2b;
+  color: #fff;
+}
+
+.expandPlaceholder {
+  width: 24px;
+}
+
+.categoryIcon {
+  background: #2b2b2b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.categoryName {
+  font-weight: 600;
+}
+
+.categoryDesc {
+  opacity: 0.7;
+  font-size: 13px;
+}
+
+.categoryActions {
+  display: flex;
+  gap: 6px;
+}
+
+.categoryChildren {
+  margin-top: 4px;
+  border-left: 2px solid #2b2b2b;
+  margin-left: 12px;
+  padding-left: 8px;
+}
+
+.smallBtn.danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+.smallBtn.danger:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
