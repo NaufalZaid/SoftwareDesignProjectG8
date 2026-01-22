@@ -283,7 +283,7 @@ function AdminDashboard() {
             localStorage.removeItem("userId");
             localStorage.removeItem("role");
             // keep email optionally
-            navigate("/login");
+            navigate("/");
           }}
         >
           Logout
