@@ -29,28 +29,7 @@ CREATE TABLE administrators (
                                 user_id UUID PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- 3. Categories (for product categorization)
-CREATE TABLE categories (
-                            category_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                            name VARCHAR(255) NOT NULL UNIQUE,
-                            description TEXT,
-                            icon VARCHAR(255),
-                            parent_id UUID REFERENCES categories(category_id) ON DELETE SET NULL,
-                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Insert some default categories
-INSERT INTO categories (name, description, icon) VALUES
-    ('Electronics', 'Electronic devices and accessories', 'laptop'),
-    ('Clothing', 'Apparel and fashion items', 'shirt'),
-    ('Home & Garden', 'Home decor and gardening supplies', 'home'),
-    ('Sports', 'Sports equipment and activewear', 'basketball'),
-    ('Books', 'Books, magazines, and educational materials', 'book'),
-    ('Health & Beauty', 'Health products and beauty items', 'heart'),
-    ('Toys & Games', 'Toys, games, and entertainment', 'gamepad'),
-    ('Food & Beverages', 'Food items and drinks', 'utensils');
-
--- 4. Product Management
+-- 3. Product Management
 CREATE TABLE products (
                           product_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                           sku VARCHAR(255) UNIQUE NOT NULL,
