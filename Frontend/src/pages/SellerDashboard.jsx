@@ -132,7 +132,7 @@ function SellerDashboard() {
       const formData = new FormData();
       formData.append("product", new Blob([JSON.stringify(productForm)], { type: "application/json" }));
       formData.append("initialStock", productStock);
-      
+
       for (const img of productImages) {
         formData.append("images", img);
       }
@@ -156,7 +156,7 @@ function SellerDashboard() {
       const formData = new FormData();
       formData.append("product", new Blob([JSON.stringify(productForm)], { type: "application/json" }));
       formData.append("newStock", productStock);
-      
+
       for (const img of productImages) {
         formData.append("images", img);
       }
@@ -340,7 +340,7 @@ function SellerDashboard() {
               onSubmit={editingProduct ? handleUpdateProduct : handleAddProduct}
             >
               <h3>{editingProduct ? "Edit Product" : "Add New Product"}</h3>
-              
+
               <div className="seller-form-grid">
                 <div className="seller-form-group">
                   <label>SKU *</label>
@@ -582,7 +582,7 @@ function SellerDashboard() {
       {activeTab === TABS.WALLET && (
         <div className="seller-card">
           <h2>Wallet</h2>
-          
+
           <div className="seller-wallet-balance">
             <span>Current Balance</span>
             <strong>RM {walletLoading ? "..." : balance.toFixed(2)}</strong>

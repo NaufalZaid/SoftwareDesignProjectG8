@@ -13,7 +13,7 @@ import {
 const TABS = {
   SELLERS: "Sellers",
   TRANSACTIONS: "Transactions",
-  CATEGORIES: "Categories",
+  // CATEGORIES: "Categories", uncomment if we have categories
   SETTINGS: "Platform Settings",
 };
 
@@ -48,7 +48,8 @@ function AdminDashboard() {
           onClick={() => {
             localStorage.removeItem("userId");
             localStorage.removeItem("role");
-            navigate("/login");
+            // keep email optionally
+            navigate("/");
           }}
         >
           Logout
