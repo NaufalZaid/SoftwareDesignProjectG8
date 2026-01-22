@@ -15,6 +15,8 @@ import "../styles/Customer.css";
 export default function CustomerDashboard() {
     const userId = localStorage.getItem("userId");
     const navigate = useNavigate();
+    const [notification, setNotification] = useState(null);
+    const [prevProductStatus, setPrevProductStatus] = useState({});
 
     const [selectedTab, setSelectedTab] = useState("products");
     const [keyword, setKeyword] = useState("");
@@ -41,9 +43,34 @@ export default function CustomerDashboard() {
         getWalletBalance(userId).then(setWalletBalance);
         setCartCount(getCart().length);
     }, [userId]);
+    useEffect(() => {
+        if (!notification) return;
+
+        const timer = setTimeout(() => {
+            setNotification(null);
+        }, 4000);
+
+        return () => clearTimeout(timer);
+    }, [notification]);
+
 
     async function loadAllProducts() {
         const data = await getAllProducts();
+
+        // Detect status changes
+        const newStatusMap = {};
+        data.forEach(p => {
+            newStatusMap[p.id] = p.status;
+
+            const oldStatus = prevProductStatus[p.id];
+            if (oldStatus && oldStatus !== p.status) {
+                setNotification(
+                    `Product "${p.name}" status changed: ${oldStatus} → ${p.status}`
+                );
+            }
+        });
+
+        setPrevProductStatus(newStatusMap);
         setAllProducts(data);
         setProducts(data);
     }
@@ -93,6 +120,11 @@ export default function CustomerDashboard() {
         <div className="dashboard-bg">
             <div className="dashboard-wrapper">
                 <h1>Customer Dashboard</h1>
+                {notification && (
+                    <div className="notification-bar">
+                        {notification}
+                    </div>
+                )}
 
                 <div className="top-bar">
                     <div>
