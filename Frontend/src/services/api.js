@@ -110,6 +110,15 @@ export async function getShippingAddress(userId) {
 
 /* ================= SELLER: PRODUCTS ================= */
 
+export async function getProductsBySeller(sellerId) {
+    const res = await fetch(
+        `${API_BASE}/products/seller/${sellerId}`
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch seller products");
+    return res.json();
+}
+
 export async function addProduct(sellerId, formData) {
     const res = await fetch(
         `${API_BASE}/seller/${sellerId}/addProduct`,

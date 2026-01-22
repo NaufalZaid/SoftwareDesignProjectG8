@@ -1,6 +1,5 @@
 // src/services/adminApi.js
-// ✅ Matches the endpoints you shared from Postman.
-// Works best with a Vite proxy (BASE_URL=""), but you can set BASE_URL to "http://localhost:8080" too.
+// Admin API functions for the admin dashboard
 
 const BASE_URL = ""; // "" (use Vite proxy) OR "http://localhost:8080"
 
@@ -74,12 +73,30 @@ export async function registerAdmin(payload) {
 
 /* -------------------- ADMIN: SELLER MANAGEMENT -------------------- */
 /**
+ * Get all sellers (with optional approval status filter)
+ * GET /api/v1/admin/sellers?approved=true/false
+ */
+export async function getAllSellers(approved = null) {
+  const adminEmail = localStorage.getItem("email");
+  let url = "/api/v1/admin/sellers";
+  if (approved !== null) {
+    url += `?approved=${approved}`;
+  }
+  return request(url, {
+    headers: { "User-Email": adminEmail },
+  });
+}
+
+/**
  * Get seller info
  * GET /api/v1/admin/sellers/{sellerId}
  */
 export async function getSellerInfo(sellerId) {
   if (!sellerId) throw new Error("getSellerInfo(sellerId) requires sellerId");
-  return request(`/api/v1/admin/sellers/${encodeURIComponent(sellerId)}`);
+  const adminEmail = localStorage.getItem("email");
+  return request(`/api/v1/admin/sellers/${encodeURIComponent(sellerId)}`, {
+    headers: { "User-Email": adminEmail },
+  });
 }
 
 /**
@@ -88,8 +105,10 @@ export async function getSellerInfo(sellerId) {
  */
 export async function approveSeller(sellerId) {
   if (!sellerId) throw new Error("approveSeller(sellerId) requires sellerId");
+  const adminEmail = localStorage.getItem("email");
   return request(`/api/v1/admin/sellers/${encodeURIComponent(sellerId)}/approve`, {
     method: "PUT",
+    headers: { "User-Email": adminEmail },
   });
 }
 
@@ -110,29 +129,60 @@ export async function updatePlatformSettings(payload) {
   if (!payload || typeof payload !== "object") {
     throw new Error("updatePlatformSettings(payload) requires a JSON object");
   }
+  const adminEmail = localStorage.getItem("email");
   return request("/api/v1/admin/settings/update", {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { 
+      "Content-Type": "application/json",
+      "User-Email": adminEmail,
+    },
     body: JSON.stringify(payload),
   });
 }
 
 /* -------------------- ADMIN: TRANSACTIONS -------------------- */
 /**
- * ⚠️ Your Postman endpoint list does NOT include any admin transactions endpoints.
- * So we cannot implement:
- * - list all transactions
- * - filter transactions
- * - transaction summary
- *
- * If you find any endpoints like:
- *   GET /api/v1/admin/transactions
- *   GET /api/v1/admin/report?start=...&end=...
- *   GET /api/v1/admin/status/{status}
- *   GET /api/v1/admin/user/{userId}
- *   GET /api/v1/admin/{transactionId}
- * paste them and I’ll add them immediately.
+ * Get user transaction history
+ * GET /api/v1/admin/user/{userId}
  */
+export async function getUserTransactionHistory(userId) {
+  if (!userId) throw new Error("getUserTransactionHistory(userId) requires userId");
+  return request(`/api/v1/admin/user/${encodeURIComponent(userId)}`);
+}
+
+/**
+ * Get audit report by date range
+ * GET /api/v1/admin/report?start=...&end=...
+ * @param {string} start - ISO datetime string (e.g., "2026-01-01T00:00:00")
+ * @param {string} end - ISO datetime string (e.g., "2026-01-07T23:59:59")
+ */
+export async function getTransactionReport(start, end) {
+  if (!start || !end) throw new Error("getTransactionReport(start, end) requires both start and end dates");
+  const qs = new URLSearchParams({
+    start: start,
+    end: end,
+  }).toString();
+  return request(`/api/v1/admin/report?${qs}`);
+}
+
+/**
+ * Get transactions by status
+ * GET /api/v1/admin/status/{status}
+ * @param {string} status - e.g., "SUCCESS", "PAID", "FAILED", "UNPAID"
+ */
+export async function getTransactionsByStatus(status) {
+  if (!status) throw new Error("getTransactionsByStatus(status) requires status");
+  return request(`/api/v1/admin/status/${encodeURIComponent(status)}`);
+}
+
+/**
+ * Get single transaction details
+ * GET /api/v1/admin/{transactionId}
+ */
+export async function getTransactionDetails(transactionId) {
+  if (!transactionId) throw new Error("getTransactionDetails(transactionId) requires transactionId");
+  return request(`/api/v1/admin/${encodeURIComponent(transactionId)}`);
+}
 
 /* -------------------- OPTIONAL: endpoints you listed (not admin-specific) -------------------- */
 

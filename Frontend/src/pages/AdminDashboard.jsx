@@ -8,6 +8,11 @@ import {
   approveSeller,
   getPlatformSettings,
   updatePlatformSettings,
+  getAllSellers,
+  getUserTransactionHistory,
+  getTransactionReport,
+  getTransactionsByStatus,
+  getTransactionDetails,
 } from "../services/adminApi";
 
 const TABS = {
@@ -39,6 +44,39 @@ function AdminDashboard() {
   const [sellerLoading, setSellerLoading] = useState(false);
   const [sellerDetails, setSellerDetails] = useState(null);
   const [sellerError, setSellerError] = useState("");
+  const [sellersList, setSellersList] = useState([]);
+  const [sellersFilter, setSellersFilter] = useState("all"); // "all" | "pending" | "approved"
+  const [sellersListLoading, setSellersListLoading] = useState(false);
+
+  const fetchSellersList = async (filter = sellersFilter) => {
+    setSellersListLoading(true);
+    setSellerError("");
+    try {
+      let approved = null;
+      if (filter === "pending") approved = false;
+      else if (filter === "approved") approved = true;
+      
+      const data = await getAllSellers(approved);
+      setSellersList(data || []);
+    } catch (e) {
+      setSellerError(e.message || "Failed to load sellers list.");
+    } finally {
+      setSellersListLoading(false);
+    }
+  };
+
+  // Load sellers list on first tab open
+  useEffect(() => {
+    if (activeTab === TABS.SELLERS && sellersList.length === 0 && !sellersListLoading) {
+      fetchSellersList();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const handleFilterChange = (newFilter) => {
+    setSellersFilter(newFilter);
+    fetchSellersList(newFilter);
+  };
 
   const fetchSellerDetails = async () => {
     setSellerError("");
@@ -60,13 +98,21 @@ function AdminDashboard() {
     }
   };
 
+  const selectSellerFromList = (seller) => {
+    const sellerId = seller.userID || seller.user?.userID;
+    if (sellerId) {
+      setSellerIdInput(sellerId);
+      setSellerDetails(seller);
+    }
+  };
+
   const approveSellerAction = async () => {
     if (!sellerDetails && !sellerIdInput.trim()) {
       alert("No seller loaded. Fetch seller details first.");
       return;
     }
 
-    const sellerId = (sellerDetails?.user?.userID || sellerIdInput).trim();
+    const sellerId = (sellerDetails?.userID || sellerDetails?.user?.userID || sellerIdInput).trim();
     if (!sellerId) {
       alert("Missing seller ID.");
       return;
@@ -77,7 +123,9 @@ function AdminDashboard() {
     try {
       const result = await approveSeller(sellerId);
       alert(result || "Seller approved.");
+      // Refresh both the details and the list
       await fetchSellerDetails();
+      await fetchSellersList();
     } catch (e) {
       alert(e.message || "Failed to approve seller.");
     }
@@ -95,6 +143,65 @@ function AdminDashboard() {
       return;
     }
     pdfWindow.document.write(`<iframe width="100%" height="100%" src="${linkSource}"></iframe>`);
+  };
+
+  // =========================
+  // TRANSACTIONS
+  // =========================
+  const [txLoading, setTxLoading] = useState(false);
+  const [txError, setTxError] = useState("");
+  const [transactions, setTransactions] = useState([]);
+  const [txSearchMode, setTxSearchMode] = useState("status"); // "status" | "user" | "dateRange"
+  const [txStatusInput, setTxStatusInput] = useState("PAID");
+  const [txUserIdInput, setTxUserIdInput] = useState("");
+  const [txStartDate, setTxStartDate] = useState("");
+  const [txEndDate, setTxEndDate] = useState("");
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+
+  const searchTransactions = async () => {
+    setTxError("");
+    setTransactions([]);
+    setTxLoading(true);
+
+    try {
+      let data = [];
+      if (txSearchMode === "status") {
+        if (!txStatusInput.trim()) {
+          setTxError("Please select a status.");
+          return;
+        }
+        data = await getTransactionsByStatus(txStatusInput.trim());
+      } else if (txSearchMode === "user") {
+        if (!txUserIdInput.trim()) {
+          setTxError("Please enter a User ID (UUID).");
+          return;
+        }
+        data = await getUserTransactionHistory(txUserIdInput.trim());
+      } else if (txSearchMode === "dateRange") {
+        if (!txStartDate || !txEndDate) {
+          setTxError("Please select both start and end dates.");
+          return;
+        }
+        // Convert date inputs to ISO datetime strings
+        const startISO = `${txStartDate}T00:00:00`;
+        const endISO = `${txEndDate}T23:59:59`;
+        data = await getTransactionReport(startISO, endISO);
+      }
+      setTransactions(data || []);
+    } catch (e) {
+      setTxError(e.message || "Failed to fetch transactions.");
+    } finally {
+      setTxLoading(false);
+    }
+  };
+
+  const viewTransactionDetails = async (transactionId) => {
+    try {
+      const data = await getTransactionDetails(transactionId);
+      setSelectedTransaction(data);
+    } catch (e) {
+      alert(e.message || "Failed to fetch transaction details.");
+    }
   };
 
   // =========================
@@ -200,66 +307,310 @@ function AdminDashboard() {
       {activeTab === TABS.SELLERS && (
         <div className="card">
           <h2 className="sectionTitle">Manage Seller Accounts</h2>
-          <div className="helpText">
-            Use <code>GET /api/v1/admin/sellers/{"{sellerId}"}</code> and{" "}
-            <code>PUT /api/v1/admin/sellers/{"{sellerId}"}/approve</code>.
+          
+          {/* Filter and Refresh */}
+          <div className="row" style={{ marginBottom: 12 }}>
+            <label style={{ marginRight: 8 }}>
+              <input
+                type="radio"
+                name="sellersFilter"
+                value="all"
+                checked={sellersFilter === "all"}
+                onChange={() => handleFilterChange("all")}
+              />
+              {" "}All Sellers
+            </label>
+            <label style={{ marginRight: 8 }}>
+              <input
+                type="radio"
+                name="sellersFilter"
+                value="pending"
+                checked={sellersFilter === "pending"}
+                onChange={() => handleFilterChange("pending")}
+              />
+              {" "}Pending Approval
+            </label>
+            <label style={{ marginRight: 8 }}>
+              <input
+                type="radio"
+                name="sellersFilter"
+                value="approved"
+                checked={sellersFilter === "approved"}
+                onChange={() => handleFilterChange("approved")}
+              />
+              {" "}Approved
+            </label>
+            <button className="secondaryBtn" onClick={() => fetchSellersList()} disabled={sellersListLoading}>
+              {sellersListLoading ? "Loading..." : "Refresh"}
+            </button>
           </div>
 
-          <div className="row">
-            <input
-              value={sellerIdInput}
-              onChange={(e) => setSellerIdInput(e.target.value)}
-              placeholder="Seller ID (UUID)"
-              className="input"
-            />
-            <button className="primaryBtn" onClick={fetchSellerDetails} disabled={sellerLoading}>
-              {sellerLoading ? "Loading..." : "View Seller Details"}
-            </button>
-            <button className="successBtn" onClick={approveSellerAction} disabled={!sellerDetails}>
-              Approve Seller
-            </button>
-          </div>
-
-          {sellerError ? <div className="errorBox">{sellerError}</div> : null}
-
-          {sellerDetails && (
-            <div style={{ marginTop: 12 }}>
-              <div className="kvGrid">
-                <KV label="Seller User ID" value={safe(sellerDetails?.user?.userID || sellerIdInput)} />
-                <KV label="Seller Email" value={safe(sellerDetails?.user?.email)} />
-                <KV label="Seller Name" value={safe(sellerDetails?.name)} />
-                <KV label="Store Name" value={safe(sellerDetails?.storeName)} />
-                <KV label="Status" value={safe(sellerDetails?.status)} />
+          {/* Sellers List Table */}
+          {sellersList.length > 0 && (
+            <div style={{ marginBottom: 16, overflowX: "auto" }}>
+              <table className="sellersTable">
+                <thead>
+                  <tr>
+                    <th>Store Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sellersList.map((seller) => (
+                    <tr key={seller.userID}>
+                      <td>{seller.storeName || "-"}</td>
+                      <td>{seller.email || "-"}</td>
+                      <td>
+                        <span className={`approvedBadge ${seller.approved ? "approved" : "pending"}`}>
+                          {seller.approved ? "Approved" : "Pending"}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="smallBtn"
+                          onClick={() => selectSellerFromList(seller)}
+                        >
+                          Select
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="helpText" style={{ marginTop: 8 }}>
+                Found {sellersList.length} seller(s)
               </div>
-
-              <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button
-                  className="secondaryBtn"
-                  onClick={() => openComplianceDoc(sellerDetails?.complianceDocs)}
-                >
-                  View Compliance PDF (if present)
-                </button>
-              </div>
-
-              <details style={{ marginTop: 12 }}>
-                <summary style={{ cursor: "pointer" }}>Raw Seller JSON</summary>
-                <pre className="pre">{JSON.stringify(sellerDetails, null, 2)}</pre>
-              </details>
             </div>
           )}
+
+          {sellersList.length === 0 && !sellersListLoading && (
+            <div className="helpText" style={{ marginBottom: 16 }}>
+              No sellers found with the selected filter.
+            </div>
+          )}
+
+          {/* Seller Details Section */}
+          <div style={{ borderTop: "1px solid #2b2b2b", paddingTop: 16, marginTop: 8 }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>Seller Details</h3>
+            <div className="helpText">
+              Select a seller from the list above or enter a Seller ID manually.
+            </div>
+
+            <div className="row">
+              <input
+                value={sellerIdInput}
+                onChange={(e) => setSellerIdInput(e.target.value)}
+                placeholder="Seller ID (UUID)"
+                className="input"
+              />
+              <button className="primaryBtn" onClick={fetchSellerDetails} disabled={sellerLoading}>
+                {sellerLoading ? "Loading..." : "View Details"}
+              </button>
+              <button className="successBtn" onClick={approveSellerAction} disabled={!sellerDetails || sellerDetails.approved}>
+                Approve Seller
+              </button>
+            </div>
+
+            {sellerError ? <div className="errorBox">{sellerError}</div> : null}
+
+            {sellerDetails && (
+              <div style={{ marginTop: 12 }}>
+                <div className="kvGrid">
+                  <KV label="Seller User ID" value={safe(sellerDetails?.userID || sellerDetails?.user?.userID || sellerIdInput)} />
+                  <KV label="Email" value={safe(sellerDetails?.email || sellerDetails?.user?.email)} />
+                  <KV label="Store Name" value={safe(sellerDetails?.storeName)} />
+                  <KV label="Approval Status" value={sellerDetails?.approved ? "Approved" : "Pending"} />
+                  <KV label="Role" value={safe(sellerDetails?.role || sellerDetails?.user?.role)} />
+                  <KV label="Created At" value={sellerDetails?.createdAt ? new Date(sellerDetails.createdAt).toLocaleString() : "-"} />
+                </div>
+
+                <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  <button
+                    className="secondaryBtn"
+                    onClick={() => openComplianceDoc(sellerDetails?.complianceDocs)}
+                  >
+                    View Compliance PDF (if present)
+                  </button>
+                </div>
+
+                <details style={{ marginTop: 12 }}>
+                  <summary style={{ cursor: "pointer" }}>Raw Seller JSON</summary>
+                  <pre className="pre">{JSON.stringify(sellerDetails, null, 2)}</pre>
+                </details>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {activeTab === TABS.TRANSACTIONS && (
         <div className="card">
           <h2 className="sectionTitle">Monitor Transactions</h2>
-          <div className="errorBox">
-            Your Postman endpoint list does not include any admin transaction monitoring endpoints (e.g.
-            <code> /api/v1/admin/transactions</code> or a report endpoint).
-            <br />
-            <br />
-            If you add/confirm an endpoint, I can wire this tab up immediately.
+          <div className="helpText">
+            Search transactions by status, user ID, or date range.
           </div>
+
+          {/* Search Mode Selector */}
+          <div className="row" style={{ marginBottom: 12 }}>
+            <label style={{ marginRight: 8 }}>
+              <input
+                type="radio"
+                name="txSearchMode"
+                value="status"
+                checked={txSearchMode === "status"}
+                onChange={() => setTxSearchMode("status")}
+              />
+              {" "}By Status
+            </label>
+            <label style={{ marginRight: 8 }}>
+              <input
+                type="radio"
+                name="txSearchMode"
+                value="user"
+                checked={txSearchMode === "user"}
+                onChange={() => setTxSearchMode("user")}
+              />
+              {" "}By User ID
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="txSearchMode"
+                value="dateRange"
+                checked={txSearchMode === "dateRange"}
+                onChange={() => setTxSearchMode("dateRange")}
+              />
+              {" "}By Date Range
+            </label>
+          </div>
+
+          {/* Search Inputs */}
+          <div className="row">
+            {txSearchMode === "status" && (
+              <select
+                value={txStatusInput}
+                onChange={(e) => setTxStatusInput(e.target.value)}
+                className="input"
+              >
+                <option value="PAID">PAID</option>
+                <option value="UNPAID">UNPAID</option>
+                <option value="SUCCESS">SUCCESS</option>
+                <option value="FAILED">FAILED</option>
+              </select>
+            )}
+
+            {txSearchMode === "user" && (
+              <input
+                value={txUserIdInput}
+                onChange={(e) => setTxUserIdInput(e.target.value)}
+                placeholder="User ID (UUID)"
+                className="input"
+              />
+            )}
+
+            {txSearchMode === "dateRange" && (
+              <>
+                <input
+                  type="date"
+                  value={txStartDate}
+                  onChange={(e) => setTxStartDate(e.target.value)}
+                  className="input"
+                />
+                <span style={{ padding: "0 8px" }}>to</span>
+                <input
+                  type="date"
+                  value={txEndDate}
+                  onChange={(e) => setTxEndDate(e.target.value)}
+                  className="input"
+                />
+              </>
+            )}
+
+            <button className="primaryBtn" onClick={searchTransactions} disabled={txLoading}>
+              {txLoading ? "Searching..." : "Search"}
+            </button>
+          </div>
+
+          {txError && <div className="errorBox">{txError}</div>}
+
+          {/* Transactions Table */}
+          {transactions.length > 0 && (
+            <div style={{ marginTop: 16, overflowX: "auto" }}>
+              <table className="txTable">
+                <thead>
+                  <tr>
+                    <th>Transaction ID</th>
+                    <th>Sender</th>
+                    <th>Receiver</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((tx) => (
+                    <tr key={tx.transactionId}>
+                      <td title={tx.transactionId}>
+                        {tx.transactionId?.substring(0, 8)}...
+                      </td>
+                      <td>{tx.sender?.email || tx.senderId || "-"}</td>
+                      <td>{tx.receiver?.email || tx.receiverId || "-"}</td>
+                      <td>RM {tx.amount?.toFixed(2) || "0.00"}</td>
+                      <td>
+                        <span className={`statusBadge ${tx.status?.toLowerCase()}`}>
+                          {tx.status || "-"}
+                        </span>
+                      </td>
+                      <td>{tx.timestamp ? new Date(tx.timestamp).toLocaleString() : "-"}</td>
+                      <td>
+                        <button
+                          className="smallBtn"
+                          onClick={() => viewTransactionDetails(tx.transactionId)}
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="helpText" style={{ marginTop: 8 }}>
+                Found {transactions.length} transaction(s)
+              </div>
+            </div>
+          )}
+
+          {transactions.length === 0 && !txLoading && !txError && (
+            <div className="helpText" style={{ marginTop: 16 }}>
+              No transactions found. Try a different search.
+            </div>
+          )}
+
+          {/* Transaction Details Modal */}
+          {selectedTransaction && (
+            <div className="modalOverlay" onClick={() => setSelectedTransaction(null)}>
+              <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+                <h3>Transaction Details</h3>
+                <div className="kvGrid">
+                  <KV label="Transaction ID" value={safe(selectedTransaction.transactionId)} />
+                  <KV label="Amount" value={`RM ${selectedTransaction.amount?.toFixed(2) || "0.00"}`} />
+                  <KV label="Status" value={safe(selectedTransaction.status)} />
+                  <KV label="Description" value={safe(selectedTransaction.description)} />
+                  <KV label="Timestamp" value={selectedTransaction.timestamp ? new Date(selectedTransaction.timestamp).toLocaleString() : "-"} />
+                  <KV label="Sender ID" value={safe(selectedTransaction.sender?.userID || selectedTransaction.senderId)} />
+                  <KV label="Sender Email" value={safe(selectedTransaction.sender?.email)} />
+                  <KV label="Receiver ID" value={safe(selectedTransaction.receiver?.userID || selectedTransaction.receiverId)} />
+                  <KV label="Receiver Email" value={safe(selectedTransaction.receiver?.email)} />
+                </div>
+                <button className="secondaryBtn" style={{ marginTop: 16 }} onClick={() => setSelectedTransaction(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
