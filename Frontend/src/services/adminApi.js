@@ -184,6 +184,87 @@ export async function getTransactionDetails(transactionId) {
   return request(`/api/v1/admin/${encodeURIComponent(transactionId)}`);
 }
 
+/* -------------------- ADMIN: CATEGORIES -------------------- */
+/**
+ * Get all categories (public endpoint for dropdowns)
+ * GET /api/v1/categories
+ */
+export async function getAllCategories() {
+  return request("/api/v1/categories");
+}
+
+/**
+ * Get categories as hierarchical tree
+ * GET /api/v1/categories/tree
+ */
+export async function getCategoryTree() {
+  return request("/api/v1/categories/tree");
+}
+
+/**
+ * Get single category by ID (admin)
+ * GET /api/v1/admin/categories/{id}
+ */
+export async function getCategoryById(categoryId) {
+  if (!categoryId) throw new Error("getCategoryById(categoryId) requires categoryId");
+  const adminEmail = localStorage.getItem("email");
+  return request(`/api/v1/admin/categories/${encodeURIComponent(categoryId)}`, {
+    headers: { "User-Email": adminEmail },
+  });
+}
+
+/**
+ * Create a new category (admin)
+ * POST /api/v1/admin/categories
+ */
+export async function createCategory(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("createCategory(payload) requires an object");
+  }
+  const adminEmail = localStorage.getItem("email");
+  return request("/api/v1/admin/categories", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Email": adminEmail,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Update a category (admin)
+ * PUT /api/v1/admin/categories/{id}
+ */
+export async function updateCategory(categoryId, payload) {
+  if (!categoryId) throw new Error("updateCategory(categoryId, payload) requires categoryId");
+  if (!payload || typeof payload !== "object") {
+    throw new Error("updateCategory(categoryId, payload) requires an object payload");
+  }
+  const adminEmail = localStorage.getItem("email");
+  return request(`/api/v1/admin/categories/${encodeURIComponent(categoryId)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Email": adminEmail,
+    },
+    body: JSON.stringify(payload),
+  });
+}
+
+/**
+ * Delete a category (admin)
+ * DELETE /api/v1/admin/categories/{id}
+ */
+export async function deleteCategory(categoryId) {
+  if (!categoryId) throw new Error("deleteCategory(categoryId) requires categoryId");
+  const adminEmail = localStorage.getItem("email");
+  return request(`/api/v1/admin/categories/${encodeURIComponent(categoryId)}`, {
+    method: "DELETE",
+    headers: { "User-Email": adminEmail },
+  });
+}
+
 /* -------------------- OPTIONAL: endpoints you listed (not admin-specific) -------------------- */
 
 /**
