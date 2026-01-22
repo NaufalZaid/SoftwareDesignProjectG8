@@ -220,6 +220,7 @@ export default function CustomerDashboard() {
                         <input
                             type="number"
                             value={topUpAmount}
+                            style={{ width: "95%" }}
                             onChange={e => setTopUpAmount(e.target.value)}
                             placeholder="Top-up amount"
                         />
