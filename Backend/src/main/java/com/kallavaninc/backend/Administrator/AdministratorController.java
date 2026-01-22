@@ -38,6 +38,17 @@ public class AdministratorController {
         }
     }
 
+    // Endpoint to list all sellers (with optional filter for pending approval)
+    @GetMapping("/sellers")
+    public ResponseEntity<List<Seller>> listAllSellers(
+            @RequestHeader("User-Email") String adminEmail,
+            @RequestParam(required = false) Boolean approved) {
+        if (approved != null) {
+            return ResponseEntity.ok(adminService.getSellersByApprovalStatus(adminEmail, approved));
+        }
+        return ResponseEntity.ok(adminService.getAllSellers(adminEmail));
+    }
+
     // Endpoint to get details + compliance docs
     @GetMapping("/sellers/{sellerId}")
     public ResponseEntity<Seller> viewSellerDetails(

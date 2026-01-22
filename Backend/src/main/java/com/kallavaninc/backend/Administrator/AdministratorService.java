@@ -10,6 +10,7 @@ import com.kallavaninc.backend.PlatformSettings.PlatformSettingsService;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -75,5 +76,17 @@ public class AdministratorService {
 
         // 4. Save the changes
         authenticationRepository.save(seller);
+    }
+
+    // Get all sellers (for admin listing)
+    public List<Seller> getAllSellers(String adminEmail) {
+        verifyAdminRole(adminEmail);
+        return authenticationRepository.findAllSellers();
+    }
+
+    // Get sellers filtered by approval status
+    public List<Seller> getSellersByApprovalStatus(String adminEmail, boolean approved) {
+        verifyAdminRole(adminEmail);
+        return authenticationRepository.findSellersByApprovalStatus(approved);
     }
 }
