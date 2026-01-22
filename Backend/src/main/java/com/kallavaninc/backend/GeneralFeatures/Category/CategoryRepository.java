@@ -1,4 +1,4 @@
-package com.kallavaninc.backend.Category;
+package com.kallavaninc.backend.GeneralFeatures.Category;
 
 import com.kallavaninc.backend.Entities.Category.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
