@@ -12,6 +12,7 @@ import CustomerDashboard from './pages/CustomerDashboard';
 import Cart from './pages/Cart';
 import ProductDetails from "./pages/ProductDetails";
 import AdminDashboard from "./pages/AdminDashboard";
+import SellerDashboard from "./pages/SellerDashboard";
 
 
 function App() {
@@ -28,7 +29,8 @@ function App() {
         <Route path="/customer/orderDetails" element={<OrderDetails />} />
         <Route path="/login" element={<Login />} />
         <Route path="/products/:productId" element={<ProductDetails />} />
-        <Route path="/admin" element={<AdminDashboard />} />        
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/seller" element={<SellerDashboard />} />
 
       </Routes>
     </BrowserRouter>
