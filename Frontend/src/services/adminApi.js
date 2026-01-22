@@ -132,7 +132,7 @@ export async function updatePlatformSettings(payload) {
   const adminEmail = localStorage.getItem("email");
   return request("/api/v1/admin/settings/update", {
     method: "PUT",
-    headers: { 
+    headers: {
       "Content-Type": "application/json",
       "User-Email": adminEmail,
     },
@@ -177,11 +177,11 @@ export async function getTransactionsByStatus(status) {
 
 /**
  * Get single transaction details
- * GET /api/v1/admin/{transactionId}
+ * GET /api/v1/admin/transactions/{transactionId}
  */
 export async function getTransactionDetails(transactionId) {
   if (!transactionId) throw new Error("getTransactionDetails(transactionId) requires transactionId");
-  return request(`/api/v1/admin/${encodeURIComponent(transactionId)}`);
+  return request(`/api/v1/admin/transactions/${encodeURIComponent(transactionId)}`);
 }
 
 /* -------------------- ADMIN: CATEGORIES -------------------- */
