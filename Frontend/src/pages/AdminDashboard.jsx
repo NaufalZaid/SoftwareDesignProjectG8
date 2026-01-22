@@ -13,7 +13,7 @@ import {
 const TABS = {
   SELLERS: "Sellers",
   TRANSACTIONS: "Transactions",
-  // CATEGORIES: "Categories", uncomment if we have categories
+  CATEGORIES: "Categories",
   SETTINGS: "Platform Settings",
 };
 
