@@ -1,38 +1,53 @@
 import { useEffect, useState } from "react";
-import { getAllProducts, getMyOrders } from "../services/api";
 import { addToCart, getCart } from "../services/cart";
 import { useNavigate } from "react-router-dom";
+import {
+    getAllProducts,
+    getMyOrders,
+    getWalletBalance,
+    topUpWallet,
+    payForOrder,
+    getProductsByCategory
+} from "../services/api";
+
+import "../styles/Customer.css";
 
 export default function CustomerDashboard() {
-    //get userid from localstorage
-    const customerId = localStorage.getItem("userId");
-    /*const role = localStorage.getItem("role");
-    if (role !== "CUSTOMER") {
-        return <p>Access denied. Sellers only.</p>;
-    }*/// for now commented will set it when login is ready
-
+    const userId = localStorage.getItem("userId");
     const navigate = useNavigate();
 
     const [selectedTab, setSelectedTab] = useState("products");
-
     const [keyword, setKeyword] = useState("");
+    const [selectedCategory, setSelectedCategory] = useState("");
     const [allProducts, setAllProducts] = useState([]);
     const [products, setProducts] = useState([]);
     const [orders, setOrders] = useState([]);
     const [cartCount, setCartCount] = useState(0);
+    const [walletBalance, setWalletBalance] = useState(0);
+    const [topUpAmount, setTopUpAmount] = useState("");
 
-    // Load products, orders, cart ONCE
     useEffect(() => {
-        getAllProducts().then(data => {
-            setAllProducts(data);
-            setProducts(data);
-        });
+        if (!userId) {
+            alert("User not logged in");
+            navigate("/");
+        }
+    }, [userId, navigate]);
 
-        getMyOrders(customerId).then(setOrders);
+    useEffect(() => {
+        if (!userId) return;
+
+        loadAllProducts();
+        getMyOrders(userId).then(setOrders);
+        getWalletBalance(userId).then(setWalletBalance);
         setCartCount(getCart().length);
-    }, []);
+    }, [userId]);
 
-    // Client-side search
+    async function loadAllProducts() {
+        const data = await getAllProducts();
+        setAllProducts(data);
+        setProducts(data);
+    }
+
     useEffect(() => {
         const filtered = allProducts.filter(p =>
             p.name.toLowerCase().includes(keyword.toLowerCase()) ||
@@ -42,104 +57,144 @@ export default function CustomerDashboard() {
         setProducts(filtered);
     }, [keyword, allProducts]);
 
+    async function handleFilter() {
+        if (!selectedCategory) return;
+        const data = await getProductsByCategory(selectedCategory);
+        setAllProducts(data);
+        setProducts(data);
+    }
+
+    function handleResetFilter() {
+        setSelectedCategory("");
+        setKeyword("");
+        loadAllProducts();
+    }
+
     function handleAddToCart(product) {
         addToCart(product);
         setCartCount(getCart().length);
     }
 
+    async function handleTopUp() {
+        if (!topUpAmount || Number(topUpAmount) <= 0) {
+            alert("Top-up amount must be greater than 0");
+            return;
+        }
+
+        await topUpWallet(userId, Number(topUpAmount));
+        setWalletBalance(await getWalletBalance(userId));
+        setTopUpAmount("");
+    }
+
+    const tabClass = tab =>
+        selectedTab === tab ? "tab-btn active" : "tab-btn";
+
     return (
-        <div style={{ padding: 20 }}>
-            <h1>Customer Dashboard</h1>
+        <div className="dashboard-bg">
+            <div className="dashboard-wrapper">
+                <h1>Customer Dashboard</h1>
 
-            {/* Top Actions */}
-            <div style={{ marginBottom: 20 }}>
-                <button onClick={() => navigate("/customer/cart")}>
-                    Cart ({cartCount})
-                </button>
-                <button onClick={() => navigate("/customer/checkout")} style={{ marginLeft: 10 }}>
-                    Checkout
-                </button>
-                <button onClick={() => navigate("/")} style={{ marginLeft: 10 }}>
-                    Logout
-                </button>
-            </div>
+                <div className="top-bar">
+                    <div>
+                        <button className={tabClass("products")} onClick={() => setSelectedTab("products")}>Products</button>
+                        <button className={tabClass("wallet")} onClick={() => setSelectedTab("wallet")}>Wallet</button>
+                        <button className={tabClass("orders")} onClick={() => setSelectedTab("orders")}>Orders</button>
+                    </div>
 
-            {/* Tabs */}
-            <div style={{ marginBottom: 20 }}>
-                <button
-                    onClick={() => setSelectedTab("products")}
-                    disabled={selectedTab === "products"}
-                >
-                    Show Products
-                </button>
+                    <div>
+                        <button onClick={() => navigate("/customer/cart")}>
+                            Cart ({cartCount})
+                        </button>
+                        <button onClick={() => navigate("/")}>Logout</button>
+                    </div>
+                </div>
 
-                <button
-                    onClick={() => setSelectedTab("orders")}
-                    disabled={selectedTab === "orders"}
-                    style={{ marginLeft: 10 }}
-                >
-                    My Orders
-                </button>
-            </div>
+                {selectedTab === "products" && (
+                    <>
+                        <input
+                            className="search-input"
+                            placeholder="Search by name, brand, SKU..."
+                            value={keyword}
+                            onChange={e => setKeyword(e.target.value)}
+                        />
 
-            {/* SHOW PRODUCTS TAB */}
-            {selectedTab === "products" && (
-                <section>
-                    <h2>Products</h2>
+                        <div className="filter-row">
+                            <input
+                                type="text"
+                                className="search-input"
+                                placeholder="Enter category (e.g. electronics)"
+                                style={{ width: "20%", height: "25px" }}
+                                value={selectedCategory}
+                                onChange={e => setSelectedCategory(e.target.value)}
+                            />
 
-                    <input
-                        placeholder="Search by name, brand, SKU..."
-                        value={keyword}
-                        onChange={e => setKeyword(e.target.value)}
-                    />
 
-                    {products.map(p => (
-                        <div
-                            key={p.id}
-                            style={{ border: "1px solid #ccc", margin: 10, padding: 10 }}
-                        >
-                            <h3>{p.name}</h3>
-                            <p>{p.brand}</p>
-                            <p>RM {p.price}</p>
-                            <p>Status: {p.status}</p>
+                            <button style={{ height: "50px" }} onClick={handleFilter}>Filter</button>
+                            <button style={{ height: "50px" }} onClick={handleResetFilter}>Reset</button>
+                        </div>
 
-                            <button
-                                disabled={p.status !== "AVAILABLE"}
-                                onClick={() => handleAddToCart(p)}
-                            >
-                                Add to Cart
+                        <div className="product-grid">
+                            {products.map(p => (
+                                <div
+                                    key={p.id}
+                                    className="product-card"
+                                    onClick={() => navigate(`/products/${p.id}`)}
+                                >
+                                    {p.images?.length > 0 && (
+                                        <img
+                                            src={`http://localhost:8080/product-images/${p.images[0].fileName}`}
+                                            alt={p.name}
+                                        />
+                                    )}
+
+                                    <h3>{p.name}</h3>
+                                    <p className="price">RM {p.price}</p>
+
+                                    <button
+                                        disabled={p.status !== "AVAILABLE"}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleAddToCart(p);
+                                        }}
+                                    >
+                                        Add to Cart
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </>
+                )}
+
+                {selectedTab === "orders" && orders.map(o => (
+                    <div key={o.orderID} className="order-card">
+                        <strong>{o.product.name}</strong>
+                        <p>Qty: {o.quantity}</p>
+                        <p>Payment: {o.paymentStatus}</p>
+                        <p>Shipment: {o.shipmentStatus}</p>
+
+                        {o.paymentStatus === "UNPAID" && (
+                            <button onClick={() => payForOrder(o.orderID)}>
+                                Pay Now
                             </button>
-                        </div>
-                    ))}
-                </section>
-            )}
+                        )}
+                    </div>
+                ))}
 
-            {/* MY ORDERS TAB */}
-            {selectedTab === "orders" && (
-                <section style={{ marginTop: 20 }}>
-                    <h2>My Orders</h2>
+                {selectedTab === "wallet" && (
+                    <div className="wallet-card">
+                        <h2>Wallet</h2>
+                        <p>Balance: <strong className="price">RM {walletBalance}</strong></p>
 
-                    {orders.length === 0 && <p>No orders yet.</p>}
-
-                    {orders.map(o => (
-                        <div
-                            key={o.orderID}
-                            style={{
-                                border: "1px solid #aaa",
-                                padding: 10,
-                                marginBottom: 10,
-                                cursor: "pointer"
-                            }}
-                            onClick={() => navigate(`/customer/orders/${o.orderID}`)}
-                        >
-                            <p><strong>{o.product.name}</strong></p>
-                            <p>Quantity: {o.quantity}</p>
-                            <p>Payment: {o.paymentStatus}</p>
-                            <p>Shipment: {o.shipmentStatus}</p>
-                        </div>
-                    ))}
-                </section>
-            )}
+                        <input
+                            type="number"
+                            value={topUpAmount}
+                            onChange={e => setTopUpAmount(e.target.value)}
+                            placeholder="Top-up amount"
+                        />
+                        <button onClick={handleTopUp}>Top Up</button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

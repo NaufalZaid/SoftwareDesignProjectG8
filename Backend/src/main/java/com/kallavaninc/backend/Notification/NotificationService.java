@@ -33,7 +33,7 @@ public class NotificationService implements Observer, CommandLineRunner {
     }
 
     @Override
-    public void run(String... args) {
+    public void run(String... args) { // this runs as soon as the project is launched
         // Register this service as an observer of the OrderService
         orderService.attach(this);
     }
@@ -60,7 +60,7 @@ public class NotificationService implements Observer, CommandLineRunner {
         else if ("SHIPMENT_UPDATE".equals(eventType)) {
             String msg = "Order #" + order.getOrderID() + " status: " + order.getShipmentStatus();
 
-            // Typically only the customer needs shipment updates
+            // only the customer needs shipment updates
             toSave.add(inAppFactory.createNotification(order, customer, msg));
             toSave.add(emailFactory.createNotification(order, customer, msg));
         }

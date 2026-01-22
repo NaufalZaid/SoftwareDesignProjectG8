@@ -6,6 +6,7 @@ import com.kallavaninc.backend.Entities.Payment.Transaction;
 import com.kallavaninc.backend.Entities.Product.Product;
 import com.kallavaninc.backend.Entities.Users.Customer;
 import com.kallavaninc.backend.Entities.Users.Seller;
+import com.kallavaninc.backend.Inventory.InventoryService;
 import com.kallavaninc.backend.Observer.Observer;
 import com.kallavaninc.backend.Observer.Subject;
 import com.kallavaninc.backend.Entities.Payment.Wallet;
@@ -30,13 +31,15 @@ public class OrderService implements Subject {
     private final AuthenticationRepository authRepo;
     private final WalletRepository walletRepository;
     private final TransactionRepository transactionRepository;
+    private final InventoryService inventoryService;
 
-    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, AuthenticationRepository authRepo, WalletRepository walletRepo, TransactionRepository transactionRepository) {
+    public OrderService(OrderRepository orderRepository, ProductRepository productRepository, AuthenticationRepository authRepo, WalletRepository walletRepo, TransactionRepository transactionRepository, InventoryService inventoryService) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
         this.authRepo = authRepo;
         this.walletRepository = walletRepo;
         this.transactionRepository = transactionRepository;
+        this.inventoryService = inventoryService;
     }
 
     private final List<Observer> observers = new ArrayList<>();
@@ -77,26 +80,32 @@ public class OrderService implements Subject {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        // Quick check to see if it's even worth creating the order
+        if (!inventoryService.isInStock(productId, quantity)) {
+            throw new RuntimeException("Insufficient stock for product: " + product.getName());
+        }
+
         // 2. Create Order and set details
         Order order = new Order();
         order.setCustomer(customer);
         order.setProduct(product);
         order.setQuantity(quantity);
         order.setShippingAddress(address);
+        order.setPaymentStatus(Order.PaymentStatus.PENDING); // Mark as pending
 
         LocalDate deliveryDate = LocalDate.now().plusDays(7);
         Date dateValue = java.sql.Date.valueOf(deliveryDate);
         order.setEstimatedDelivery(dateValue);
 
         // 3. Logic: Calculate total amount
-        // Inside placeOrder method
         BigDecimal unitPrice = product.getPrice();
         BigDecimal qty = new BigDecimal(quantity);
         order.setTotalAmount(unitPrice.multiply(qty));
 
+        // Save the order WITHOUT deducting stock yet
         Order savedOrder = orderRepository.save(order);
 
-        // Notify observers to send "New Order" notifications
+        // Notify observers
         notifyObservers(savedOrder, "ORDER_CREATED");
 
         return savedOrder;
@@ -114,25 +123,31 @@ public class OrderService implements Subject {
 
     @Transactional
     public void processPayment(Order order) {
-        Customer customer = order.getCustomer();
-        Seller seller = order.getProduct().getSeller();
-        BigDecimal amount = order.getTotalAmount();
-
-        Wallet customerWallet = walletRepository.findByUser(customer);
-        Wallet sellerWallet = walletRepository.findByUser(seller);
-
-        // Check if customer has enough money
-        if (customerWallet.getBalance().compareTo(amount) < 0) {
+        // 1. FINAL Stock Check (Safety check right before the money moves)
+        if (!inventoryService.isInStock(order.getProduct().getId(), order.getQuantity())) {
             updatePaymentStatus(order.getOrderID(), Order.PaymentStatus.FAILED);
-            return;
+            throw new RuntimeException("Product went out of stock before payment was finalized!");
         }
 
-        // Perform the transfer
+        Wallet customerWallet = walletRepository.findByUser(order.getCustomer());
+        Wallet sellerWallet = walletRepository.findByUser(order.getProduct().getSeller());
+        BigDecimal amount = order.getTotalAmount();
+
+        // 2. Wallet Balance Check
+        if (customerWallet.getBalance().compareTo(amount) < 0) {
+            updatePaymentStatus(order.getOrderID(), Order.PaymentStatus.FAILED);
+            return; // No stock was touched
+        }
+
+        // 3. Perform the transfer
         customerWallet.setBalance(customerWallet.getBalance().subtract(amount));
         sellerWallet.setBalance(sellerWallet.getBalance().add(amount));
-
         walletRepository.save(customerWallet);
         walletRepository.save(sellerWallet);
+
+        // 4. MINUS STOCK NOW
+        // Since payment is successful, we finally commit the stock change
+        inventoryService.deductStock(order.getProduct().getId(), order.getQuantity());
 
         updatePaymentStatus(order.getOrderID(), Order.PaymentStatus.PAID);
     }

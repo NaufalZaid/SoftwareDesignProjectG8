@@ -1,5 +1,6 @@
 package com.kallavaninc.backend.Entities.Product;
 
+import com.kallavaninc.backend.Entities.Inventory.Inventory;
 import com.kallavaninc.backend.Entities.Users.Seller;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,9 +36,9 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
-    // One product can have many images
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    private String category;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,14 +52,15 @@ public class Product {
     public Product() {
     }
 
-    public Product(String sku, String name, String brand, String description, BigDecimal price, ProductStatus status, List<ProductImage> images, Seller seller) {
+    public Product(String sku, String name, String brand, String description, BigDecimal price, ProductStatus status, List<ProductImage> images, Seller seller, String category) {
         this.sku = sku;
         this.name = name;
         this.brand = brand;
         this.description = description;
         this.price = price;
         this.status = status;
-        this.images = images;
+        this.images = (images != null) ? images : new ArrayList<>();
         this.seller = seller;
+        this.category = category;
     }
 }

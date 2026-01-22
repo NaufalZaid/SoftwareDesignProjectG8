@@ -1,5 +1,6 @@
 package com.kallavaninc.backend.Authentication;
 
+import com.kallavaninc.backend.Entities.Users.Customer;
 import com.kallavaninc.backend.Entities.Users.Seller;
 import com.kallavaninc.backend.Entities.Users.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,4 +18,6 @@ public interface AuthenticationRepository extends JpaRepository<User, UUID>{
     boolean existsByEmail(String email);
 
     Optional<Seller> findSellerByUserID(UUID userID);
+
+    Optional<Customer> findCustomerByUserID(UUID userID);
 }

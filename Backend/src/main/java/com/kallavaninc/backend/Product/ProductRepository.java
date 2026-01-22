@@ -18,4 +18,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     List<Product> findBySellerWithImages(@Param("sellerId") UUID sellerId);
 
     Optional<Product> findByIdAndSellerUserID(UUID productId, UUID sellerId);
+
+    List<Product> findByCategory(String category);
 }

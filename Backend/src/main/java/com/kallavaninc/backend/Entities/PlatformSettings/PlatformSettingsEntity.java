@@ -17,7 +17,7 @@ public class PlatformSettingsEntity {
     private Double taxRate;
     private String currency;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "payment_methods", joinColumns = @JoinColumn(name = "settings_id"))
     @Column(name = "method_name")
     private List<String> paymentMethods;
