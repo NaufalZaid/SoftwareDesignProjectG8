@@ -105,7 +105,7 @@ public class AdministratorController {
 
     // --- CRUCIAL ADDITION 1: Get Single Transaction Details ---
     // Essential for a "View Receipt" feature in React
-    @GetMapping("/transactions/{transactionId}")
+    @GetMapping("/{transactionId}")
     public ResponseEntity<Transaction> getTransactionDetails(@PathVariable UUID transactionId) {
         return transactionRepository.findById(transactionId)
                 .map(ResponseEntity::ok)
