@@ -13,6 +13,7 @@ import {
   getSellerBalance,
   withdrawFunds,
 } from "../services/api";
+import { getAllCategories } from "../services/adminApi";
 
 const TABS = {
   PRODUCTS: "My Products",
@@ -35,6 +36,24 @@ function SellerDashboard() {
 
   // ---- tab ----
   const [activeTab, setActiveTab] = useState(TABS.PRODUCTS);
+
+  // =========================
+  // CATEGORIES (for suggestions)
+  // =========================
+  const [categorySuggestions, setCategorySuggestions] = useState([]);
+
+  // Fetch category suggestions on mount
+  useEffect(() => {
+    const fetchCategorySuggestions = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategorySuggestions(data || []);
+      } catch (e) {
+        console.error("Failed to fetch categories:", e);
+      }
+    };
+    fetchCategorySuggestions();
+  }, []);
 
   // =========================
   // PRODUCTS
@@ -362,7 +381,14 @@ function SellerDashboard() {
                     name="category"
                     value={productForm.category}
                     onChange={handleProductFormChange}
+                    list="category-suggestions"
+                    placeholder="Select or type a category"
                   />
+                  <datalist id="category-suggestions">
+                    {categorySuggestions.map((cat) => (
+                      <option key={cat.id} value={cat.name} />
+                    ))}
+                  </datalist>
                 </div>
 
                 <div className="seller-form-group">
