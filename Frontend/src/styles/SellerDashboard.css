@@ -1,0 +1,403 @@
+/* SellerDashboard.css */
+
+.seller-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #eaeaea;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.seller-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.seller-title {
+  margin: 0;
+  font-size: 28px;
+}
+
+.seller-subtitle {
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+.seller-logout-btn {
+  background: #2b2b2b;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.seller-logout-btn:hover {
+  background: #3a3a3a;
+}
+
+/* Tabs */
+.seller-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.seller-tab {
+  background: #202020;
+  border: 1px solid #2b2b2b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor: pointer;
+  opacity: 0.8;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.seller-tab:hover {
+  opacity: 1;
+}
+
+.seller-tab.active {
+  opacity: 1;
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+/* Cards */
+.seller-card {
+  background: #171717;
+  border: 1px solid #2b2b2b;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.seller-card h2 {
+  margin: 0 0 16px;
+  font-size: 20px;
+}
+
+.seller-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.seller-card-header h2 {
+  margin: 0;
+}
+
+/* Buttons */
+.seller-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.seller-btn.primary {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.seller-btn.primary:hover {
+  background: #2563eb;
+}
+
+.seller-btn.secondary {
+  background: #2b2b2b;
+  color: #fff;
+  border: 1px solid #3a3a3a;
+}
+
+.seller-btn.secondary:hover {
+  background: #3a3a3a;
+}
+
+.seller-btn.danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.seller-btn.danger:hover {
+  background: #dc2626;
+}
+
+.seller-btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Error */
+.seller-error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #ffd5d5;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.seller-empty {
+  text-align: center;
+  opacity: 0.7;
+  padding: 40px;
+}
+
+/* Form */
+.seller-form {
+  background: #101010;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.seller-form h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.seller-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.seller-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.seller-form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.seller-form-group label {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.seller-form-group input,
+.seller-form-group select,
+.seller-form-group textarea {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  outline: none;
+  font-size: 14px;
+}
+
+.seller-form-group input:focus,
+.seller-form-group select:focus,
+.seller-form-group textarea:focus {
+  border-color: #3b82f6;
+}
+
+.seller-form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.seller-form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Products Grid */
+.seller-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 16px;
+}
+
+.seller-product-card {
+  background: #101010;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+
+.seller-product-card:hover {
+  transform: translateY(-2px);
+}
+
+.seller-product-img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  background: #1a1a1a;
+}
+
+.seller-product-info {
+  padding: 12px;
+}
+
+.seller-product-info h4 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.seller-product-sku {
+  font-size: 12px;
+  opacity: 0.7;
+  margin: 0 0 4px;
+}
+
+.seller-product-price {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4ade80;
+  margin: 8px 0;
+}
+
+.seller-product-actions {
+  display: flex;
+  gap: 8px;
+  padding: 0 12px 12px;
+}
+
+/* Status Badges */
+.seller-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.seller-status-badge.available,
+.seller-status-badge.paid,
+.seller-status-badge.delivered {
+  background: rgba(22, 163, 74, 0.2);
+  color: #4ade80;
+}
+
+.seller-status-badge.out_of_stock,
+.seller-status-badge.unpaid,
+.seller-status-badge.processing {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fbbf24;
+}
+
+.seller-status-badge.discontinued,
+.seller-status-badge.failed {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.seller-status-badge.shipped {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.seller-status-badge.pending {
+  background: rgba(234, 179, 8, 0.2);
+  color: #fbbf24;
+}
+
+/* Table */
+.seller-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.seller-table th,
+.seller-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #2b2b2b;
+}
+
+.seller-table th {
+  background: #1a1a1a;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.seller-table tr:hover {
+  background: #1f1f1f;
+}
+
+.seller-status-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Wallet */
+.seller-wallet-balance {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid #2b2b2b;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.seller-wallet-balance span {
+  display: block;
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+
+.seller-wallet-balance strong {
+  font-size: 40px;
+  color: #4ade80;
+}
+
+.seller-wallet-withdraw {
+  background: #101010;
+  border: 1px solid #2b2b2b;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.seller-wallet-withdraw h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.seller-withdraw-row {
+  display: flex;
+  gap: 12px;
+}
+
+.seller-withdraw-row input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #0f0f0f;
+  color: #fff;
+  font-size: 16px;
+}
+
+.seller-withdraw-row input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}

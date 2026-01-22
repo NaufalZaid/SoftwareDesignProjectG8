@@ -47,7 +47,7 @@ function Login() {
                 navigate("/customer");
             }
             else if (role === "SELLER") {
-                navigate("/seller/dashboard");
+                navigate("/seller");
             }
             else if (role === "ADMIN") {
                 navigate("/admin");
