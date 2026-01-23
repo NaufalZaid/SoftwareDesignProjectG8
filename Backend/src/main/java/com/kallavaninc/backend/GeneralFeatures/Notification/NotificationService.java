@@ -79,4 +79,8 @@ public class NotificationService implements Observer, CommandLineRunner {
     public List<Notification> getNotificationsByUserId(UUID userId) {
         return notificationRepository.findByUser_UserID(userId);
     }
+
+    public List<Notification> getNotificationsByUserIdAndType(UUID userId, String Type) {
+        return notificationRepository.findByUser_UserIDAndType(userId, Type);
+    }
 }

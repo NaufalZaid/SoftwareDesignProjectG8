@@ -1,10 +1,7 @@
 package com.kallavaninc.backend.GeneralFeatures.Notification;
 
 import com.kallavaninc.backend.Entities.Notification.Notification;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,5 +19,10 @@ public class NotificationController {
     @GetMapping("/{userID}")
     public List<Notification> getNotificationsByUserId(@PathVariable UUID userID){
         return notificationService.getNotificationsByUserId(userID);
+    }
+
+    @GetMapping("/inApp/{userID}")
+    public List<Notification> getInAppNotificationsByUserId(@PathVariable UUID userID){
+        return notificationService.getNotificationsByUserIdAndType(userID, "InApp");
     }
 }
