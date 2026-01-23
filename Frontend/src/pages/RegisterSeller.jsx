@@ -21,10 +21,8 @@ function RegisterSeller() {
 
     const handleFileChange = (e) => {
         const selectedFile = e.target.files[0];
-
         if (!selectedFile) return;
 
-        // ✅ Enforce PDF only (client-side validation)
         if (selectedFile.type !== "application/pdf") {
             alert("Approval letter must be a PDF file only.");
             e.target.value = null;
@@ -52,26 +50,17 @@ function RegisterSeller() {
         formData.append("storeName", form.storeName);
         formData.append("email", form.email);
         formData.append("password", form.password);
-
-        if (file) {
-            formData.append("complianceDocs", file);
-        }
+        if (file) formData.append("complianceDocs", file);
 
         try {
-            const response = await fetch(
-                "/api/v1/auth/register/seller",
-                {
-                    method: "POST",
-                    body: formData
-                }
-            );
+            const response = await fetch("/api/v1/auth/register/seller", {
+                method: "POST",
+                body: formData
+            });
 
-            if (!response.ok) {
-                throw new Error(await response.text());
-            }
+            if (!response.ok) throw new Error(await response.text());
 
-            const message = await response.text();
-            alert(message);
+            alert(await response.text());
             navigate("/");
         } catch (err) {
             alert(err.message);
@@ -79,72 +68,75 @@ function RegisterSeller() {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <h2 className="auth-title">Seller Registration</h2>
+        <div className="dashboard-bg">
+            <div className="auth-wrapper">
+                <div className="auth-card dashboard-card">
+                    <h1 className="pasar-logo">PASAR</h1>
+                    <p className="auth-subtitle">
+                        Seller onboarding & compliance verification
+                    </p>
 
-                <form className="auth-form" onSubmit={handleSubmit}>
-                    <input
-                        className="auth-input"
-                        name="name"
-                        placeholder="Full Name"
-                        onChange={handleChange}
-                        required
-                    />
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <input
+                            className="auth-input"
+                            name="name"
+                            placeholder="Full Name"
+                            onChange={handleChange}
+                            required
+                        />
 
-                    <input
-                        className="auth-input"
-                        name="storeName"
-                        placeholder="Store Name"
-                        onChange={handleChange}
-                        required
-                    />
+                        <input
+                            className="auth-input"
+                            name="storeName"
+                            placeholder="Store Name"
+                            onChange={handleChange}
+                            required
+                        />
 
-                    <input
-                        className="auth-input"
-                        name="email"
-                        type="email"
-                        placeholder="Email"
-                        onChange={handleChange}
-                        required
-                    />
+                        <input
+                            className="auth-input"
+                            name="email"
+                            type="email"
+                            placeholder="Email Address"
+                            onChange={handleChange}
+                            required
+                        />
 
-                    <input
-                        className="auth-input"
-                        name="password"
-                        type="password"
-                        placeholder="Password (min 8 characters)"
-                        minLength={8}
-                        onChange={handleChange}
-                        required
-                    />
+                        <input
+                            className="auth-input"
+                            name="password"
+                            type="password"
+                            placeholder="Password (min 8 characters)"
+                            minLength={8}
+                            onChange={handleChange}
+                            required
+                        />
 
-                    <input
-                        className="auth-input"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Verify Password"
-                        minLength={8}
-                        onChange={handleChange}
-                        required
-                    />
+                        <input
+                            className="auth-input"
+                            name="confirmPassword"
+                            type="password"
+                            placeholder="Confirm Password"
+                            minLength={8}
+                            onChange={handleChange}
+                            required
+                        />
 
+                        <div className="file-box">
+                            <label>Compliance Document (PDF only)</label>
+                            <input
+                                type="file"
+                                accept="application/pdf"
+                                onChange={handleFileChange}
+                                required
+                            />
+                        </div>
 
-                    <label style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
-                        Compliance document (PDF only)
-                    </label>
-                    <input
-                        className="auth-input"
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handleFileChange}
-                        required
-                    />
-
-                    <button className="auth-button" type="submit">
-                        Register Seller
-                    </button>
-                </form>
+                        <button className="auth-button primary" type="submit">
+                            Submit Seller Application
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

@@ -59,3 +59,154 @@
 .auth-button:hover {
     background: #111;
 }
+
+/* PASAR Branding */
+.pasar-bg {
+    background: #171717;
+}
+
+.pasar-card {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+}
+
+.pasar-logo {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: #22c55e;
+}
+
+.pasar-tagline {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #cbd5f5;
+    margin-bottom: 2rem;
+}
+
+/* Button Variants */
+.auth-button {
+    transition: all 0.25s ease;
+    font-weight: 600;
+}
+
+.auth-button.primary {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.auth-button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.35);
+}
+
+.auth-button.secondary {
+    background: #0f172a;
+    border: 1px solid #22c55e;
+    color: #22c55e;
+}
+
+.auth-button.secondary:hover {
+    background: rgba(34, 197, 94, 0.1);
+}
+
+.auth-button.ghost {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #cbd5f5;
+}
+
+.auth-button.ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* =========================
+   AUTH WRAPPER (DASHBOARD STYLE)
+========================= */
+.auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Reuse dashboard look */
+.dashboard-card {
+    width: 100%;
+    max-width: 420px;
+    background: #171717;
+    border: 1px solid #2b2b2b;
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* PASAR branding */
+.pasar-logo {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    color: #22c55e;
+    margin-bottom: 4px;
+}
+
+.auth-subtitle {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #bdbdbd;
+    margin-bottom: 22px;
+}
+
+/* Inputs aligned with dashboard */
+.auth-input {
+    background: #0f0f0f;
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px 14px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    outline: none;
+}
+
+.auth-input:focus {
+    border-color: #3b82f6;
+}
+
+/* File upload box */
+.file-box {
+    margin-bottom: 18px;
+}
+
+.file-box label {
+    display: block;
+    font-size: 0.85rem;
+    color: #cfcfcf;
+    margin-bottom: 6px;
+}
+
+.file-box input {
+    width: 100%;
+    background: #0f0f0f;
+    color: #cfcfcf;
+    border: 1px dashed #333;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* Primary action */
+.auth-button.primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 600;
+    background: #22c55e;
+    color: #000;
+    border: none;
+    cursor: pointer;
+}
+
+.auth-button.primary:hover {
+    background: #16a34a;
+}

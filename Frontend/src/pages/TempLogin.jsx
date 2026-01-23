@@ -31,30 +31,18 @@ function Login() {
             }
 
             const user = await response.json();
-            // backend returns: userID, email, user_role
-
             const role = user.user_role?.trim().toUpperCase();
 
-            //  Store session data
             localStorage.setItem("userId", user.userID);
             localStorage.setItem("role", role);
             localStorage.setItem("email", user.email);
 
             alert("Login successful");
 
-            //  Role-based redirect
-            if (role === "CUSTOMER") {
-                navigate("/customer");
-            }
-            else if (role === "SELLER") {
-                navigate("/seller");
-            }
-            else if (role === "ADMIN") {
-                navigate("/admin");
-            }
-            else {
-                navigate("/");
-            }
+            if (role === "CUSTOMER") navigate("/customer");
+            else if (role === "SELLER") navigate("/seller");
+            else if (role === "ADMIN") navigate("/admin");
+            else navigate("/");
 
         } catch (err) {
             alert(err.message);
@@ -62,33 +50,38 @@ function Login() {
     };
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <h2 className="auth-title">Login</h2>
+        <div className="dashboard-bg">
+            <div className="auth-wrapper">
+                <div className="auth-card dashboard-card">
+                    <h1 className="pasar-logo">PASAR</h1>
+                    <p className="auth-subtitle">
+                        Sign in to your account
+                    </p>
 
-                <form className="auth-form" onSubmit={handleSubmit}>
-                    <input
-                        className="auth-input"
-                        name="email"
-                        type="email"
-                        placeholder="Email"
-                        onChange={handleChange}
-                        required
-                    />
+                    <form className="auth-form" onSubmit={handleSubmit}>
+                        <input
+                            className="auth-input"
+                            name="email"
+                            type="email"
+                            placeholder="Email Address"
+                            onChange={handleChange}
+                            required
+                        />
 
-                    <input
-                        className="auth-input"
-                        name="password"
-                        type="password"
-                        placeholder="Password"
-                        onChange={handleChange}
-                        required
-                    />
+                        <input
+                            className="auth-input"
+                            name="password"
+                            type="password"
+                            placeholder="Password"
+                            onChange={handleChange}
+                            required
+                        />
 
-                    <button className="auth-button" type="submit">
-                        Login
-                    </button>
-                </form>
+                        <button className="auth-button primary" type="submit">
+                            Login
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );
