@@ -12,6 +12,7 @@ import {
   updateShipment,
   getSellerBalance,
   withdrawFunds,
+  getNotificationsByUserId
 } from "../services/api";
 import { getAllCategories } from "../services/adminApi";
 
@@ -19,11 +20,18 @@ const TABS = {
   PRODUCTS: "My Products",
   ORDERS: "Orders",
   WALLET: "Wallet",
+  NOTIFICATIONS: "Notifications",
 };
 
 function SellerDashboard() {
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
+  // =========================
+  // NOTIFICATIONS
+  // =========================
+  const [notifications, setNotifications] = useState([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+
 
   // ---- auth guard ----
   useEffect(() => {
@@ -106,6 +114,29 @@ function SellerDashboard() {
       setProductsLoading(false);
     }
   };
+  const fetchNotifications = async () => {
+    if (!userId) return;
+    setNotificationsLoading(true);
+    try {
+      const data = await getNotificationsByUserId(userId);
+      setNotifications(data || []);
+    } catch (e) {
+      console.error("Failed to fetch notifications:", e);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (userId && activeTab === TABS.NOTIFICATIONS) {
+      fetchNotifications();
+    }
+  }, [userId, activeTab]);
+  useEffect(() => {
+    if (userId) {
+      fetchNotifications();
+    }
+  }, [userId]);
 
   useEffect(() => {
     if (userId && activeTab === TABS.PRODUCTS) {
@@ -304,16 +335,25 @@ function SellerDashboard() {
 
       {/* Tabs */}
       <div className="seller-tabs">
-        {Object.values(TABS).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`seller-tab ${activeTab === tab ? "active" : ""}`}
-          >
-            {tab}
-          </button>
-        ))}
+        {Object.values(TABS).map((tab) => {
+          const isNotificationsTab = tab === TABS.NOTIFICATIONS;
+          const count = notifications.length;
+
+          return (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`seller-tab ${activeTab === tab ? "active" : ""}`}
+            >
+              {tab}
+              {isNotificationsTab && count > 0 && (
+                <span className="notification-badge">{count}</span>
+              )}
+            </button>
+          );
+        })}
       </div>
+
 
       {/* Products Tab */}
       {activeTab === TABS.PRODUCTS && (
@@ -578,6 +618,7 @@ function SellerDashboard() {
         </div>
       )}
 
+
       {/* Wallet Tab */}
       {activeTab === TABS.WALLET && (
         <div className="seller-card">
@@ -606,7 +647,42 @@ function SellerDashboard() {
           </div>
         </div>
       )}
+      {/* Notifications Tab */}
+      {activeTab === TABS.NOTIFICATIONS && (
+        <div className="seller-card">
+          <div className="seller-card-header">
+            <h2>Notifications</h2>
+            <button
+              className="seller-btn secondary"
+              onClick={fetchNotifications}
+              disabled={notificationsLoading}
+            >
+              {notificationsLoading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
+
+          {notificationsLoading && <p>Loading notifications...</p>}
+
+          {!notificationsLoading && notifications.length === 0 && (
+            <p className="seller-empty">No notifications.</p>
+          )}
+
+          {notifications.length > 0 && (
+            <div className="seller-notifications-list">
+              {notifications.map((n) => (
+                <div key={n.notificationID} className="notification-card">
+                  <strong>{n.title}</strong>
+                  <p>{n.message}</p>
+                  <small>{n.createdAt}</small>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
+
   );
 }
 
