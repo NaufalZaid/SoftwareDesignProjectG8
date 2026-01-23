@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class NotificationService implements Observer, CommandLineRunner {
@@ -42,7 +43,6 @@ public class NotificationService implements Observer, CommandLineRunner {
         List<Notification> toSave = new ArrayList<>();
         User seller = order.getProduct().getSeller();
         User customer = order.getCustomer();
-
         // Initial Order Creation Event
         if ("ORDER_CREATED".equals(eventType)) {
             String customerMsg = "Order #" + order.getOrderID() + " placed successfully!";
@@ -54,7 +54,6 @@ public class NotificationService implements Observer, CommandLineRunner {
             toSave.add(inAppFactory.createNotification(order, seller, sellerMsg));
             toSave.add(emailFactory.createNotification(order, seller, sellerMsg));
         }
-
         // Shipment Status Changes
         else if ("SHIPMENT_UPDATE".equals(eventType)) {
             String msg = "Order #" + order.getOrderID() + " status: " + order.getShipmentStatus();
@@ -63,7 +62,6 @@ public class NotificationService implements Observer, CommandLineRunner {
             toSave.add(inAppFactory.createNotification(order, customer, msg));
             toSave.add(emailFactory.createNotification(order, customer, msg));
         }
-
         // Payment Status Changes
         else if ("PAYMENT_UPDATE".equals(eventType)) {
             String msg = "Payment for Order #" + order.getOrderID() + " is now " + order.getPaymentStatus();
@@ -72,10 +70,17 @@ public class NotificationService implements Observer, CommandLineRunner {
             toSave.add(inAppFactory.createNotification(order, seller, msg));
             toSave.add(emailFactory.createNotification(order, seller, msg));
         }
-
         // Save only if events matched
         if (!toSave.isEmpty()) {
             notificationRepository.saveAll(toSave);
         }
+    }
+
+    public List<Notification> getNotificationsByUserId(UUID userId) {
+        return notificationRepository.findByUser_UserID(userId);
+    }
+
+    public List<Notification> getNotificationsByUserIdAndType(UUID userId, String Type) {
+        return notificationRepository.findByUser_UserIDAndType(userId, Type);
     }
 }

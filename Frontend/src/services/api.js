@@ -66,6 +66,14 @@ export async function payForOrder(orderId) {
 
     return res.text();
 }
+// Notifications
+export async function getNotificationsByUserId(userId) {
+    const res = await fetch(`/api/v1/notifications/inApp/${userId}`);
+    if (!res.ok) {
+        throw new Error("Failed to fetch notifications");
+    }
+    return res.json();
+}
 
 /* ================= CUSTOMER: WALLET ================= */
 

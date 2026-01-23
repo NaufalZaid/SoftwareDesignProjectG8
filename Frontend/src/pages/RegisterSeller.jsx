@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AuthForm.css";
 
-
 function RegisterSeller() {
     const navigate = useNavigate();
+
     const [form, setForm] = useState({
         name: "",
         storeName: "",
@@ -20,7 +20,18 @@ function RegisterSeller() {
     };
 
     const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
+        const selectedFile = e.target.files[0];
+
+        if (!selectedFile) return;
+
+        // ✅ Enforce PDF only (client-side validation)
+        if (selectedFile.type !== "application/pdf") {
+            alert("Approval letter must be a PDF file only.");
+            e.target.value = null;
+            return;
+        }
+
+        setFile(selectedFile);
     };
 
     const handleSubmit = async (e) => {
@@ -37,7 +48,6 @@ function RegisterSeller() {
         }
 
         const formData = new FormData();
-
         formData.append("name", form.name);
         formData.append("storeName", form.storeName);
         formData.append("email", form.email);
@@ -74,8 +84,6 @@ function RegisterSeller() {
                 <h2 className="auth-title">Seller Registration</h2>
 
                 <form className="auth-form" onSubmit={handleSubmit}>
-
-                    {/*NEW FIELD */}
                     <input
                         className="auth-input"
                         name="name"
@@ -121,11 +129,16 @@ function RegisterSeller() {
                         required
                     />
 
+
+                    <label style={{ fontSize: "0.9rem", marginTop: "0.5rem" }}>
+                        Compliance document (PDF only)
+                    </label>
                     <input
                         className="auth-input"
                         type="file"
-                        accept=".pdf,.jpg,.jpeg,.png"
+                        accept="application/pdf"
                         onChange={handleFileChange}
+                        required
                     />
 
                     <button className="auth-button" type="submit">

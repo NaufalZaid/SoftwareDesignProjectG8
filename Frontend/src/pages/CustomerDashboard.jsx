@@ -7,7 +7,8 @@ import {
     getWalletBalance,
     topUpWallet,
     payForOrder,
-    getProductsByCategory
+    getProductsByCategory,
+    getNotificationsByUserId
 } from "../services/api";
 
 import "../styles/Customer.css";
@@ -15,10 +16,11 @@ import "../styles/Customer.css";
 export default function CustomerDashboard() {
     const userId = localStorage.getItem("userId");
     const navigate = useNavigate();
-    const [notification, setNotification] = useState(null);
-    const [prevProductStatus, setPrevProductStatus] = useState({});
 
+    /* ================== STATE ================== */
+    const [notifications, setNotifications] = useState([]);
     const [selectedTab, setSelectedTab] = useState("products");
+
     const [keyword, setKeyword] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("");
     const [allProducts, setAllProducts] = useState([]);
@@ -28,53 +30,49 @@ export default function CustomerDashboard() {
     const [walletBalance, setWalletBalance] = useState(0);
     const [topUpAmount, setTopUpAmount] = useState("");
 
+    /* ================== AUTH CHECK ================== */
     useEffect(() => {
         if (!userId) {
-            alert("User not logged in");
             navigate("/");
         }
     }, [userId, navigate]);
 
+    /* ================== INITIAL LOAD ================== */
     useEffect(() => {
         if (!userId) return;
 
         loadAllProducts();
-        getMyOrders(userId).then(setOrders);
+        loadOrders();
+        loadNotifications();
         getWalletBalance(userId).then(setWalletBalance);
         setCartCount(getCart().length);
     }, [userId]);
-    useEffect(() => {
-        if (!notification) return;
 
-        const timer = setTimeout(() => {
-            setNotification(null);
-        }, 4000);
-
-        return () => clearTimeout(timer);
-    }, [notification]);
-
-
-    async function loadAllProducts() {
-        const data = await getAllProducts();
-
-        // Detect status changes
-        const newStatusMap = {};
-        data.forEach(p => {
-            newStatusMap[p.id] = p.status;
-
-            const oldStatus = prevProductStatus[p.id];
-            if (oldStatus && oldStatus !== p.status) {
-                setNotification(
-                    `Product "${p.name}" status changed: ${oldStatus} → ${p.status}`
-                );
-            }
-        });
-
-        setPrevProductStatus(newStatusMap);
-        setAllProducts(data);
-        setProducts(data);
+    async function loadNotifications() {
+        try {
+            const data = await getNotificationsByUserId(userId);
+            setNotifications(data);
+        } catch (err) {
+            console.error(err);
+        }
     }
 
+    async function loadOrders() {
+        const data = await getMyOrders(userId);
+        setOrders(data);
+    }
+
+    async function loadAllProducts() {
+        const productsFromApi = await getAllProducts();
+
+
+
+
+        setAllProducts(productsFromApi);
+        setProducts(productsFromApi);
+    }
+
+    /* ================== SEARCH ================== */
     useEffect(() => {
         const filtered = allProducts.filter(p =>
             p.name.toLowerCase().includes(keyword.toLowerCase()) ||
@@ -84,6 +82,7 @@ export default function CustomerDashboard() {
         setProducts(filtered);
     }, [keyword, allProducts]);
 
+    /* ================== FILTER ================== */
     async function handleFilter() {
         if (!selectedCategory) return;
         const data = await getProductsByCategory(selectedCategory);
@@ -97,11 +96,13 @@ export default function CustomerDashboard() {
         loadAllProducts();
     }
 
+    /* ================== CART ================== */
     function handleAddToCart(product) {
         addToCart(product);
         setCartCount(getCart().length);
     }
 
+    /* ================== WALLET ================== */
     async function handleTopUp() {
         if (!topUpAmount || Number(topUpAmount) <= 0) {
             alert("Top-up amount must be greater than 0");
@@ -113,31 +114,35 @@ export default function CustomerDashboard() {
         setTopUpAmount("");
     }
 
+    function handleLogout() {
+        localStorage.removeItem("userId");
+        navigate("/");
+    }
+
     const tabClass = tab =>
         selectedTab === tab ? "tab-btn active" : "tab-btn";
 
+    /* ================== RENDER ================== */
     return (
         <div className="dashboard-bg">
             <div className="dashboard-wrapper">
                 <h1>Customer Dashboard</h1>
-                {notification && (
-                    <div className="notification-bar">
-                        {notification}
-                    </div>
-                )}
 
                 <div className="top-bar">
                     <div>
                         <button className={tabClass("products")} onClick={() => setSelectedTab("products")}>Products</button>
                         <button className={tabClass("wallet")} onClick={() => setSelectedTab("wallet")}>Wallet</button>
                         <button className={tabClass("orders")} onClick={() => setSelectedTab("orders")}>Orders</button>
+                        <button className={tabClass("notifications")} onClick={() => setSelectedTab("notifications")}>
+                            Notifications {notifications.length > 0 && `(${notifications.length})`}
+                        </button>
                     </div>
 
                     <div>
                         <button onClick={() => navigate("/customer/cart")}>
                             Cart ({cartCount})
                         </button>
-                        <button onClick={() => navigate("/")}>Logout</button>
+                        <button onClick={handleLogout}>Logout</button>
                     </div>
                 </div>
 
@@ -154,19 +159,18 @@ export default function CustomerDashboard() {
                             <input
                                 type="text"
                                 className="search-input"
-                                placeholder="Enter category (e.g. electronics)"
-                                style={{ width: "20%", height: "25px" }}
+                                placeholder="Enter category"
                                 value={selectedCategory}
                                 onChange={e => setSelectedCategory(e.target.value)}
                             />
 
-
-                            <button style={{ height: "50px" }} onClick={handleFilter}>Filter</button>
-                            <button style={{ height: "50px" }} onClick={handleResetFilter}>Reset</button>
+                            <button onClick={handleFilter}>Filter</button>
+                            <button onClick={handleResetFilter}>Reset</button>
                         </div>
 
                         <div className="product-grid">
                             {products.map(p => (
+
                                 <div
                                     key={p.id}
                                     className="product-card"
@@ -219,12 +223,30 @@ export default function CustomerDashboard() {
 
                         <input
                             type="number"
-                            value={topUpAmount}
                             style={{ width: "95%" }}
+                            value={topUpAmount}
                             onChange={e => setTopUpAmount(e.target.value)}
                             placeholder="Top-up amount"
                         />
                         <button onClick={handleTopUp}>Top Up</button>
+                    </div>
+                )}
+
+                {selectedTab === "notifications" && (
+                    <div className="notifications-panel">
+                        <h2>Notifications</h2>
+
+                        {notifications.length === 0 ? (
+                            <p>No notifications.</p>
+                        ) : (
+                            notifications.map(n => (
+                                <div key={n.notificationID} className="notification-card">
+                                    <strong>{n.title}</strong>
+                                    <p>{n.message}</p>
+                                    <small>{n.createdAt}</small>
+                                </div>
+                            ))
+                        )}
                     </div>
                 )}
             </div>
