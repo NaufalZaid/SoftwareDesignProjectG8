@@ -295,7 +295,7 @@ function SellerDashboard() {
           onClick={() => {
             localStorage.removeItem("userId");
             localStorage.removeItem("role");
-            navigate("/login");
+            navigate("/");
           }}
         >
           Logout

@@ -27,6 +27,7 @@ export function addToCart(product) {
     }
 
     saveCart(cart);
+    alert(`"${product.name}" added to cart`);
 }
 
 export function updateQuantity(productId, quantity) {
