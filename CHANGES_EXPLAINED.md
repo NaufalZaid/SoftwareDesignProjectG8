@@ -215,14 +215,14 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph TransactionsTab [Transactions Tab]
-        SearchOptions[Search by: Status / User ID / Date Range]
+        SearchOptions[Search by:<br/>Status / User ID / Date Range]
         SearchOptions --> SearchButton[Search Button]
         SearchButton --> ResultsTable
 
         subgraph ResultsTable [Results Table]
-            Header[ID | From | To | Amount | Status | Date]
-            Row1[abc123 | john@.. | shop@.. | RM 50 | PAID]
-            Row2[def456 | jane@.. | mart@.. | RM 120 | PAID]
+            Header[ID<br/>From<br/>To<br/>Amount<br/>Status<br/>Date]
+            Row1[abc123<br/>john@..<br/>shop@..<br/>RM 50<br/>PAID]
+            Row2[def456<br/>jane@..<br/>mart@..<br/>RM 120<br/>PAID]
         end
     end
 ```
